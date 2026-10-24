@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane styleClass="app-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.northwinddw.ui.DashboardController">
+    <top>
+        <VBox styleClass="page-header" spacing="18">
+            <padding>
+                <Insets top="24" right="30" bottom="20" left="30" />
+            </padding>
+            <HBox alignment="CENTER_LEFT" spacing="18">
+                <VBox spacing="4">
+                    <Label text="NORTHWIND DW" styleClass="eyebrow" />
+                    <Label text="Ventas y operaciones" styleClass="page-title" />
+                    <Label text="Una vista clara de los datos comerciales de Northwind." styleClass="page-subtitle" />
+                </VBox>
+                <Region HBox.hgrow="ALWAYS" />
+                <HBox alignment="CENTER_RIGHT" spacing="10" styleClass="header-actions">
+                    <Label fx:id="connectionBadge" text="Conectando…" styleClass="status-badge status-loading" />
+                    <Label fx:id="yearLabel" text="Periodo" styleClass="control-label" />
+                    <ComboBox fx:id="yearFilter" accessibleText="Filtrar informes por año" prefWidth="150" />
+                    <Button fx:id="refreshButton" onAction="#refresh" text="Actualizar" styleClass="button-secondary" />
+                    <Button fx:id="exportPdfButton" onAction="#exportPdf" text="Exportar PDF" styleClass="button-primary" />
+                    <Button fx:id="exportSqlButton" onAction="#exportSql" text="Descargar SQL" styleClass="button-secondary" />
+                </HBox>
+            </HBox>
+            <HBox spacing="14" styleClass="summary-row">
+                <VBox styleClass="summary-card" HBox.hgrow="ALWAYS">
+                    <Label text="VENTAS REGISTRADAS" styleClass="summary-caption" />
+                    <Label fx:id="revenueValue" text="—" styleClass="summary-value" />
+                    <Label text="Importe del periodo elegido" styleClass="summary-note" />
+                </VBox>
+                <VBox styleClass="summary-card" HBox.hgrow="ALWAYS">
+                    <Label text="CLIENTES CON VENTAS" styleClass="summary-caption" />
+                    <Label fx:id="customersValue" text="—" styleClass="summary-value" />
+                    <Label text="Clientes con actividad registrada" styleClass="summary-note" />
+                </VBox>
+                <VBox styleClass="summary-card" HBox.hgrow="ALWAYS">
+                    <Label text="PROVEEDORES CON VENTAS" styleClass="summary-caption" />
+                    <Label fx:id="suppliersValue" text="—" styleClass="summary-value" />
+                    <Label text="Proveedores con actividad registrada" styleClass="summary-note" />
+                </VBox>
+            </HBox>
+        </VBox>
+    </top>
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="dashboard-scroll" pannable="true">
+            <content>
+                <FlowPane hgap="16" vgap="16" prefWrapLength="1280" styleClass="reports-grid">
+                    <padding>
+                        <Insets top="22" right="30" bottom="22" left="30" />
+                    </padding>
+                    <VBox prefWidth="430" minWidth="360" prefHeight="320" styleClass="report-card" spacing="8">
+                        <Label text="01  Ventas por trimestre" styleClass="report-title" />
+                        <Label text="Compara la evolución de cada año." styleClass="report-subtitle" />
+                        <LineChart fx:id="quarterlyChart" animated="false" createSymbols="true" legendVisible="true" prefHeight="250" VBox.vgrow="ALWAYS">
+                            <xAxis><CategoryAxis label="Trimestre" /></xAxis>
+                            <yAxis><NumberAxis label="Ventas (USD)" forceZeroInRange="true" /></yAxis>
+                        </LineChart>
+                    </VBox>
+                    <VBox prefWidth="430" minWidth="360" prefHeight="320" styleClass="report-card" spacing="8">
+                        <Label text="02  Ventas por categoría" styleClass="report-title" />
+                        <Label text="Participación de cada grupo de productos." styleClass="report-subtitle" />
+                        <PieChart fx:id="categoryChart" animated="false" labelsVisible="false" legendSide="RIGHT" prefHeight="250" VBox.vgrow="ALWAYS" />
+                    </VBox>
+                    <VBox prefWidth="430" minWidth="360" prefHeight="320" styleClass="report-card" spacing="8">
+                        <Label text="03  Ventas por país" styleClass="report-title" />
+                        <Label text="Los diez países con más ingresos." styleClass="report-subtitle" />
+                        <BarChart fx:id="countryChart" animated="false" legendVisible="false" prefHeight="250" VBox.vgrow="ALWAYS">
+                            <xAxis><NumberAxis label="Ventas (USD)" forceZeroInRange="true" /></xAxis>
+                            <yAxis><CategoryAxis /></yAxis>
+                        </BarChart>
+                    </VBox>
+                    <VBox prefWidth="430" minWidth="360" prefHeight="320" styleClass="report-card" spacing="8">
+                        <Label text="04  Ventas por cliente" styleClass="report-title" />
+                        <Label text="Los diez clientes con mayor importe." styleClass="report-subtitle" />
+                        <BarChart fx:id="customerChart" animated="false" legendVisible="false" prefHeight="250" VBox.vgrow="ALWAYS">
+                            <xAxis><NumberAxis label="Ventas (USD)" forceZeroInRange="true" /></xAxis>
+                            <yAxis><CategoryAxis /></yAxis>
+                        </BarChart>
+                    </VBox>
+                    <VBox prefWidth="430" minWidth="360" prefHeight="320" styleClass="report-card" spacing="8">
+                        <Label text="05  Ventas por empleado" styleClass="report-title" />
+                        <Label text="Todos los empleados con actividad, por año." styleClass="report-subtitle" />
+                        <LineChart fx:id="employeeChart" animated="false" createSymbols="true" legendVisible="true" prefHeight="250" VBox.vgrow="ALWAYS">
+                            <xAxis><CategoryAxis label="Año" /></xAxis>
+                            <yAxis><NumberAxis label="Ventas (USD)" forceZeroInRange="true" /></yAxis>
+                        </LineChart>
+                    </VBox>
+                    <VBox prefWidth="430" minWidth="360" prefHeight="320" styleClass="report-card" spacing="8">
+                        <Label text="06  Proveedores por país" styleClass="report-title" />
+                        <Label text="Cantidad registrada por país de origen." styleClass="report-subtitle" />
+                        <BarChart fx:id="supplierChart" animated="false" legendVisible="false" prefHeight="250" VBox.vgrow="ALWAYS">
+                            <xAxis><NumberAxis label="Proveedores" forceZeroInRange="true" /></xAxis>
+                            <yAxis><CategoryAxis /></yAxis>
+                        </BarChart>
+                    </VBox>
+                </FlowPane>
+            </content>
+        </ScrollPane>
+    </center>
+    <bottom>
+        <HBox alignment="CENTER_LEFT" styleClass="status-footer">
+            <padding><Insets top="8" right="30" bottom="10" left="30" /></padding>
+            <Label fx:id="statusLabel" text="Preparando el tablero…" styleClass="status-message" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label text="Northwind · Análisis comercial" styleClass="footer-note" />
+        </HBox>
+    </bottom>
+</BorderPane>

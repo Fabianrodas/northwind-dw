@@ -1,0 +1,236 @@
+.root {
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-size: 13px;
+    -fx-text-fill: #1e293b;
+}
+
+.app-root {
+    -fx-background-color: #f8fafc;
+}
+
+.page-header {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #dbeafe transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.eyebrow {
+    -fx-text-fill: #1e40af;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 1.2px;
+}
+
+.page-title {
+    -fx-text-fill: #0f172a;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+.page-subtitle {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 13px;
+}
+
+.header-actions {
+    -fx-padding: 4px 0 4px 0;
+}
+
+.control-label {
+    -fx-text-fill: #334155;
+    -fx-font-weight: bold;
+}
+
+.status-badge {
+    -fx-padding: 8px 12px;
+    -fx-background-radius: 18px;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.status-connected {
+    -fx-background-color: #dcfce7;
+    -fx-text-fill: #166534;
+}
+
+.status-error {
+    -fx-background-color: #fee2e2;
+    -fx-text-fill: #991b1b;
+}
+
+.status-loading {
+    -fx-background-color: #dbeafe;
+    -fx-text-fill: #1e40af;
+}
+
+.summary-row {
+    -fx-fill-height: true;
+}
+
+.summary-card {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #dbeafe;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-padding: 12px 16px;
+    -fx-spacing: 3px;
+}
+
+.summary-caption {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+.summary-value {
+    -fx-text-fill: #1e3a8a;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.summary-note {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 11px;
+}
+
+.reports-grid {
+    -fx-alignment: top-center;
+    -fx-background-color: #f8fafc;
+}
+
+.report-card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dbeafe;
+    -fx-border-width: 1px;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-padding: 15px 16px 10px 16px;
+    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.07), 12, 0.12, 0, 3);
+}
+
+.report-title {
+    -fx-text-fill: #0f172a;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.report-subtitle {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 11px;
+}
+
+.chart {
+    -fx-background-color: transparent;
+    -fx-padding: 4px 0 0 0;
+}
+
+.chart-plot-background {
+    -fx-background-color: #ffffff;
+}
+
+.chart-vertical-grid-lines,
+.chart-horizontal-grid-lines {
+    -fx-stroke: #e2e8f0;
+    -fx-stroke-dash-array: 2 4;
+}
+
+.axis-label,
+.axis-tick-label {
+    -fx-text-fill: #475569;
+    -fx-font-size: 10px;
+}
+
+.chart-legend {
+    -fx-font-size: 10px;
+}
+
+.chart-pie-label {
+    -fx-fill: #334155;
+    -fx-font-size: 10px;
+}
+
+.default-color0.chart-series-line,
+.default-color0.chart-bar {
+    -fx-stroke: #1e40af;
+    -fx-bar-fill: #1e40af;
+}
+
+.default-color1.chart-series-line,
+.default-color1.chart-bar {
+    -fx-stroke: #3b82f6;
+    -fx-bar-fill: #3b82f6;
+}
+
+.default-color2.chart-series-line,
+.default-color2.chart-bar {
+    -fx-stroke: #d97706;
+    -fx-bar-fill: #d97706;
+}
+
+.button {
+    -fx-min-height: 44px;
+    -fx-padding: 0 14px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 7px;
+    -fx-cursor: hand;
+}
+
+.button-primary {
+    -fx-background-color: #1e40af;
+    -fx-text-fill: #ffffff;
+}
+
+.button-primary:hover {
+    -fx-background-color: #1e3a8a;
+}
+
+.button-secondary {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #bfdbfe;
+    -fx-border-radius: 7px;
+    -fx-text-fill: #1e40af;
+}
+
+.button-secondary:hover {
+    -fx-background-color: #eff6ff;
+}
+
+.button:focused,
+.combo-box:focused {
+    -fx-border-color: #1e40af;
+    -fx-border-width: 2px;
+    -fx-border-radius: 7px;
+}
+
+.combo-box {
+    -fx-min-height: 44px;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cbd5e1;
+    -fx-border-radius: 7px;
+    -fx-background-radius: 7px;
+}
+
+.status-footer {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dbeafe transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.status-message {
+    -fx-text-fill: #475569;
+    -fx-font-size: 11px;
+}
+
+.footer-note {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 10px;
+}
+
+.dashboard-scroll {
+    -fx-background-color: transparent;
+    -fx-background: #f8fafc;
+}
+
+.dashboard-scroll > .viewport {
+    -fx-background-color: #f8fafc;
+}
