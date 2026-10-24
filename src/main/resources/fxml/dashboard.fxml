@@ -65,11 +65,11 @@
     <center>
         <ScrollPane fitToWidth="true" styleClass="dashboard-scroll" pannable="true">
             <content>
-                <FlowPane hgap="16" vgap="16" prefWrapLength="1280" styleClass="reports-grid">
+                <FlowPane fx:id="reportsGrid" hgap="16" vgap="16" styleClass="reports-grid">
                     <padding>
                         <Insets top="22" right="30" bottom="22" left="30" />
                     </padding>
-                    <VBox prefWidth="430" minWidth="360" prefHeight="320" styleClass="report-card" spacing="8">
+                    <VBox fx:id="quarterlyCard" prefHeight="320" styleClass="report-card" spacing="8">
                         <Label text="01  Ventas por trimestre" styleClass="report-title" />
                         <Label text="Compara la evolución de cada año." styleClass="report-subtitle" />
                         <LineChart fx:id="quarterlyChart" animated="false" createSymbols="true" legendVisible="true" prefHeight="250" VBox.vgrow="ALWAYS">
@@ -77,12 +77,12 @@
                             <yAxis><NumberAxis label="Ventas (USD)" forceZeroInRange="true" /></yAxis>
                         </LineChart>
                     </VBox>
-                    <VBox prefWidth="430" minWidth="360" prefHeight="320" styleClass="report-card" spacing="8">
+                    <VBox fx:id="categoryCard" prefHeight="320" styleClass="report-card" spacing="8">
                         <Label text="02  Ventas por categoría" styleClass="report-title" />
                         <Label text="Participación de cada grupo de productos." styleClass="report-subtitle" />
                         <PieChart fx:id="categoryChart" animated="false" labelsVisible="false" legendSide="RIGHT" prefHeight="250" VBox.vgrow="ALWAYS" />
                     </VBox>
-                    <VBox prefWidth="430" minWidth="360" prefHeight="320" styleClass="report-card" spacing="8">
+                    <VBox fx:id="countryCard" prefHeight="320" styleClass="report-card" spacing="8">
                         <Label text="03  Ventas por país" styleClass="report-title" />
                         <Label text="Los diez países con más ingresos." styleClass="report-subtitle" />
                         <BarChart fx:id="countryChart" animated="false" legendVisible="false" prefHeight="250" VBox.vgrow="ALWAYS">
@@ -90,7 +90,7 @@
                             <yAxis><CategoryAxis /></yAxis>
                         </BarChart>
                     </VBox>
-                    <VBox prefWidth="430" minWidth="360" prefHeight="320" styleClass="report-card" spacing="8">
+                    <VBox fx:id="customerCard" prefHeight="320" styleClass="report-card" spacing="8">
                         <Label text="04  Ventas por cliente" styleClass="report-title" />
                         <Label text="Los diez clientes con mayor importe." styleClass="report-subtitle" />
                         <BarChart fx:id="customerChart" animated="false" legendVisible="false" prefHeight="250" VBox.vgrow="ALWAYS">
@@ -98,7 +98,7 @@
                             <yAxis><CategoryAxis /></yAxis>
                         </BarChart>
                     </VBox>
-                    <VBox prefWidth="430" minWidth="360" prefHeight="320" styleClass="report-card" spacing="8">
+                    <VBox fx:id="employeeCard" prefHeight="320" styleClass="report-card" spacing="8">
                         <Label text="05  Ventas por empleado" styleClass="report-title" />
                         <Label text="Todos los empleados con actividad, por año." styleClass="report-subtitle" />
                         <LineChart fx:id="employeeChart" animated="false" createSymbols="true" legendVisible="true" prefHeight="250" VBox.vgrow="ALWAYS">
@@ -106,7 +106,7 @@
                             <yAxis><NumberAxis label="Ventas (USD)" forceZeroInRange="true" /></yAxis>
                         </LineChart>
                     </VBox>
-                    <VBox prefWidth="430" minWidth="360" prefHeight="320" styleClass="report-card" spacing="8">
+                    <VBox fx:id="supplierCard" prefHeight="320" styleClass="report-card" spacing="8">
                         <Label text="06  Proveedores por país" styleClass="report-title" />
                         <Label text="Cantidad registrada por país de origen." styleClass="report-subtitle" />
                         <BarChart fx:id="supplierChart" animated="false" legendVisible="false" prefHeight="250" VBox.vgrow="ALWAYS">

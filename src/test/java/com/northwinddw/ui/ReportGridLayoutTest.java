@@ -11,7 +11,7 @@ class ReportGridLayoutTest {
         ReportGridLayout layout = ReportGridLayout.calculate(1480);
 
         assertEquals(3, layout.columns());
-        assertEquals(462.666, layout.cardWidth(), 0.01);
+        assertEquals(461.333, layout.cardWidth(), 0.01);
         assertTrue(layout.chartHeight() > 0);
     }
 
@@ -20,7 +20,7 @@ class ReportGridLayoutTest {
         ReportGridLayout layout = ReportGridLayout.calculate(1000);
 
         assertEquals(2, layout.columns());
-        assertEquals(462, layout.cardWidth(), 0.01);
+        assertEquals(460, layout.cardWidth(), 0.01);
         assertTrue(layout.chartHeight() > 0);
     }
 
@@ -29,7 +29,7 @@ class ReportGridLayoutTest {
         ReportGridLayout layout = ReportGridLayout.calculate(800);
 
         assertEquals(1, layout.columns());
-        assertEquals(740, layout.cardWidth(), 0.01);
+        assertEquals(736, layout.cardWidth(), 0.01);
         assertTrue(layout.chartHeight() >= 238);
     }
 

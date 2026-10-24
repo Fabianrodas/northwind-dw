@@ -63,9 +63,9 @@
 - Modify: `src/main/java/com/northwinddw/Main.java`
 - Modify: `src/main/resources/fxml/dashboard.fxml`
 
-- [ ] Bind report card and chart dimensions to `ReportGridLayout.calculate` when the scroll viewport changes width.
-- [ ] Remove fixed card widths and adjust window size/minimums to available display bounds.
-- [ ] Verify card positions and widths after resizing to wide, medium, and narrow stage sizes.
+- [x] Bind report card and chart dimensions to `ReportGridLayout.calculate` when the scroll viewport changes width.
+- [x] Remove fixed card widths and adjust window size/minimums to available display bounds.
+- [x] Verify card positions and widths after resizing to wide, medium, and narrow stage sizes.
 - [ ] Commit as `feat: scale dashboard cards with the window`.
 
 ### Task 4: Visual review and final verification

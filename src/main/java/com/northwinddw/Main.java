@@ -6,9 +6,11 @@ import com.northwinddw.data.ConnectionFactory;
 import com.northwinddw.service.DashboardExporter;
 import com.northwinddw.ui.DashboardController;
 import javafx.application.Application;
+import javafx.geometry.Rectangle2D;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -39,16 +41,20 @@ public final class Main extends Application {
         });
 
         Parent root = loader.load();
-        Scene scene = new Scene(root, 1480, 960);
+        Rectangle2D screen = Screen.getPrimary().getVisualBounds();
+        double windowWidth = Math.min(1480, Math.max(320, screen.getWidth() - 48));
+        double windowHeight = Math.min(960, Math.max(320, screen.getHeight() - 48));
+        Scene scene = new Scene(root, windowWidth, windowHeight);
         scene.getStylesheets().add(Main.class.getResource("/css/dashboard.css").toExternalForm());
         stage.setTitle("Northwind DW | Ventas y operaciones");
         stage.setScene(scene);
-        stage.setMinWidth(1000);
-        stage.setMinHeight(760);
-        stage.setWidth(1480);
-        stage.setHeight(960);
+        stage.setMinWidth(Math.min(720, windowWidth));
+        stage.setMinHeight(Math.min(620, windowHeight));
+        stage.setWidth(windowWidth);
+        stage.setHeight(windowHeight);
         stage.setOnCloseRequest(event -> stopDashboard());
         stage.show();
+        stage.centerOnScreen();
     }
 
     @Override

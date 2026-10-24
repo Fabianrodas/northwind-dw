@@ -9,10 +9,12 @@ import com.northwinddw.model.ReportRows.EmployeeRevenue;
 import com.northwinddw.model.ReportRows.QuarterlySales;
 import com.northwinddw.model.ReportRows.SuppliersByCountry;
 import com.northwinddw.service.DashboardExporter;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
+import javafx.scene.chart.Chart;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
@@ -22,6 +24,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -53,6 +57,13 @@ public final class DashboardController {
     @FXML private Button exportPdfButton;
     @FXML private Button exportSqlButton;
     @FXML private Button themeToggleButton;
+    @FXML private FlowPane reportsGrid;
+    @FXML private VBox quarterlyCard;
+    @FXML private VBox categoryCard;
+    @FXML private VBox countryCard;
+    @FXML private VBox customerCard;
+    @FXML private VBox employeeCard;
+    @FXML private VBox supplierCard;
     @FXML private LineChart<String, Number> quarterlyChart;
     @FXML private PieChart categoryChart;
     @FXML private BarChart<Number, String> countryChart;
@@ -101,6 +112,8 @@ public final class DashboardController {
         exportPdfButton.setTooltip(new Tooltip("Guarda un informe con el resumen y los seis análisis."));
         exportSqlButton.setTooltip(new Tooltip("Guarda el script para preparar una base vacía."));
         applyTheme();
+        reportsGrid.widthProperty().addListener((observable, previousWidth, width) -> resizeReportCards(width.doubleValue()));
+        Platform.runLater(() -> resizeReportCards(reportsGrid.getWidth()));
         exportPdfButton.setDisable(true);
         setConnectionState("Conectando…", "status-loading");
         statusLabel.setText("Preparando el tablero…");
@@ -125,6 +138,25 @@ public final class DashboardController {
         themeToggleButton.setText(theme.toggleLabel());
         themeToggleButton.setAccessibleText("Cambiar al " + theme.toggleLabel().toLowerCase());
         themeToggleButton.setTooltip(new Tooltip("Cambiar la apariencia del tablero."));
+    }
+
+    private void resizeReportCards(double paneWidth) {
+        if (paneWidth <= 0) {
+            return;
+        }
+        ReportGridLayout layout = ReportGridLayout.calculate(paneWidth);
+        reportsGrid.setPrefWrapLength(Math.max(320, paneWidth - 60));
+        List<VBox> cards = List.of(quarterlyCard, categoryCard, countryCard,
+                customerCard, employeeCard, supplierCard);
+        for (VBox card : cards) {
+            card.setMinWidth(layout.cardWidth());
+            card.setPrefWidth(layout.cardWidth());
+            card.setMaxWidth(layout.cardWidth());
+            card.setPrefHeight(layout.cardHeight());
+        }
+        List<Chart> charts = List.of(quarterlyChart, categoryChart, countryChart,
+                customerChart, employeeChart, supplierChart);
+        charts.forEach(chart -> chart.setPrefHeight(layout.chartHeight()));
     }
 
     @FXML
