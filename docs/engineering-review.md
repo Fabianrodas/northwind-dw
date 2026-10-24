@@ -32,3 +32,13 @@ El SQL original se importó en un clúster PostgreSQL 18 temporal e independient
 ## Plan de verificación
 
 La reconstrucción añade pruebas de configuración y exportación, una prueba integrada opcional contra PostgreSQL, un chequeo de compilación Maven, una inspección estática de secretos/rutas de configuración y capturas de estados real y sin conexión. La base de pruebas y el servidor PostgreSQL temporales se eliminan al finalizar.
+
+## Resultado de la reconstrucción
+
+El tablero conserva los seis análisis y el filtro por año. La lectura de configuración queda en `config`; siete consultas analíticas comparten una conexión por actualización y forman modelos inmutables; la interfaz presenta los resultados y delega las consultas a un hilo de fondo; `service` genera el PDF y copia el SQL incluido. Se usan consultas preparadas para el año y `BigDecimal` para importes. La pantalla animada, las conexiones duplicadas, la lista fija de cinco empleados y el enlace QR externo ya no forman parte del nuevo proyecto.
+
+El archivo de preparación SQL se importó en una base temporal PostgreSQL 18. La integración confirmó ventas por 1.265.792,94, 89 clientes con ventas, 29 proveedores con ventas, tres años, diez países y diez clientes en los rankings, los empleados con datos y la selección del año 1997. Cada actualización abrió una sola conexión. El filtro conservó el total correcto del periodo y la participación de las categorías sumó aproximadamente 100 %.
+
+Se abrió la aplicación con la base y también sin conexión: en el segundo caso la ventana permaneció disponible y mostró instrucciones de recuperación. Se generaron y revisaron visualmente las dos capturas de `docs/screenshots/`. Las pruebas de exportación generaron un PDF legible y comprobaron la copia del SQL portable. El comando `scripts/verify.ps1 -WithDatabaseIntegration` ejecutó las comprobaciones estáticas, 12 pruebas (11 aprobadas y la captura automática omitida en ese modo) y el empaquetado Maven sin fallos. La prueba de capturas se ejecutó por separado y produjo ambos PNG.
+
+La base, el servidor y las carpetas temporales de verificación se eliminaron al cerrar las pruebas. El archivo `.env` usado para ellas también se borró; `.env.example` solo incluye valores ficticios y las reglas de Git siguen excluyendo `.env`.

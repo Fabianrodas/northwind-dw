@@ -41,9 +41,9 @@
 
 **Interfaces:** No runtime interfaces. The example file defines the five `NORTHWIND_DB_*` keys used by later tasks.
 
-- [ ] Record behavior, static findings, and the failed no-database launch in `docs/engineering-review.md`.
-- [ ] Ignore `.env`, credential text files, Maven output, and temporary PostgreSQL data; keep `.env.example` trackable.
-- [ ] Commit the documentation and security baseline as `docs: record Northwind review and secure config baseline`.
+- [x] Record behavior, static findings, and the failed no-database launch in `docs/engineering-review.md`.
+- [x] Ignore `.env`, credential text files, Maven output, and temporary PostgreSQL data; keep `.env.example` trackable.
+- [x] Commit the documentation and security baseline as `docs: record Northwind review and secure config baseline`.
 
 ### Task 2: Database configuration and analytics repository
 
@@ -61,11 +61,11 @@
 
 **Interfaces:** `DatabaseConfig.from(Map<String,String>, Path)` returns validated connection settings. `ConnectionFactory.open()` returns a new `Connection`. `AnalyticsRepository.loadDashboard(Integer year)` returns `DashboardData` and owns one connection for its seven prepared queries.
 
-- [ ] Test `.env` parsing, system-environment precedence, defaults, and invalid ports.
-- [ ] Run `mvn test` and confirm the new config tests fail before implementation.
-- [ ] Add typed report records with `BigDecimal` monetary values and implement the six analytics plus summary query.
-- [ ] Run unit tests and the opt-in integration test against the isolated PostgreSQL fixture; check one connection is used per load and no fixed employee list remains.
-- [ ] Commit as `feat: add secure config and analytics repository`.
+- [x] Test `.env` parsing, system-environment precedence, defaults, and invalid ports.
+- [x] Run `mvn test` and confirm the new config tests fail before implementation.
+- [x] Add typed report records with `BigDecimal` monetary values and implement the six analytics plus summary query.
+- [x] Run unit tests and the opt-in integration test against the isolated PostgreSQL fixture; check one connection is used per load and no fixed employee list remains.
+- [x] Commit as `feat: add secure config and analytics repository`.
 
 ### Task 3: Responsive JavaFX dashboard
 
@@ -78,11 +78,11 @@
 
 **Interfaces:** `DashboardController` receives `AnalyticsRepository` and `DashboardExporter`; refresh loads `DashboardData` in a JavaFX `Task` and updates all six chart cards on the UI thread.
 
-- [ ] Build a six-card dashboard with text labels, visible keyboard focus, tooltips, refresh, PDF, and SQL actions.
-- [ ] Add loading, connected, empty-result, and failed-connection states.
-- [ ] Remove splash and decorative transitions; use a resizable window and responsive card layout.
-- [ ] Run the app against the temporary database, verify all six cards and filter refresh, then run it with the DB stopped and verify the app stays responsive.
-- [ ] Commit as `feat: build responsive dashboard and loading states`.
+- [x] Build a six-card dashboard with text labels, visible keyboard focus, tooltips, refresh, PDF, and SQL actions.
+- [x] Add loading, connected, empty-result, and failed-connection states.
+- [x] Remove splash and decorative transitions; use a resizable window and responsive card layout.
+- [x] Run the app against the temporary database, verify all six cards and filter refresh, then run it with the DB stopped and verify the app stays responsive.
+- [x] Commit as `feat: build responsive dashboard and loading states`.
 
 ### Task 4: Portable SQL and data exports
 
@@ -94,10 +94,10 @@
 
 **Interfaces:** `DashboardExporter.exportPdf(DashboardData, Path)` writes a PDF summary. `DashboardExporter.copySql(Path)` copies the single packaged SQL resource to the chosen destination.
 
-- [ ] Convert the source dump into a portable, non-destructive script without database creation, `DROP DATABASE`, local ownership, or credentials.
-- [ ] Test PDF signature and text, SQL export content, empty paths, and write failures.
-- [ ] Run exports from the UI against real report rows and confirm the files open and are non-empty.
-- [ ] Commit as `feat: add portable SQL and report exports`.
+- [x] Convert the source dump into a portable, non-destructive script without database creation, `DROP DATABASE`, local ownership, or credentials.
+- [x] Test PDF signature and text, SQL export content, empty paths, and write failures.
+- [x] Run exports against real report rows and confirm the PDF opens and the SQL file imports.
+- [x] Commit as `feat: add portable SQL and report exports`.
 
 ### Task 5: User guide, screenshots, and final verification
 
@@ -110,8 +110,8 @@
 
 **Interfaces:** `scripts/verify.ps1` runs the Maven unit/build checks and optional PostgreSQL integration checks when a test JDBC URL is provided.
 
-- [ ] Write Spanish run instructions in plain language and embed screenshots of the working dashboard and connection message.
-- [ ] Run `mvn test`, `mvn package`, static secret/tracked-file checks, all report queries, export checks, and visual inspection.
-- [ ] Drop only the temporary test database, stop its PostgreSQL server, and remove the temporary cluster.
-- [ ] Confirm `.env` is ignored and no secrets or test data are staged.
-- [ ] Commit as `docs: add user guide screenshots and verification notes`.
+- [x] Write Spanish run instructions in plain language and embed screenshots of the working dashboard and connection message.
+- [x] Run the tests, Maven packaging, static secret/tracked-file checks, all report queries, export checks, and visual inspection.
+- [x] Drop only the temporary test databases, stop the isolated PostgreSQL server, and remove its cluster.
+- [x] Confirm `.env` is ignored and no secrets or test data are staged.
+- [x] Commit as `docs: add user guide screenshots and verification notes`.
