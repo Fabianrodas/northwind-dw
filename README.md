@@ -49,6 +49,8 @@ Necesitas Java 21, Maven y PostgreSQL instalados. El proyecto incluye los datos 
 
 Al abrirse, el tablero consulta la base. Usa **Periodo** para elegir un año y **Actualizar** para volver a consultar. **Exportar PDF** guarda un informe con el resumen y los datos de los seis análisis; **Descargar SQL** guarda una copia del archivo de preparación de la base.
 
+En Apache NetBeans, recarga el proyecto Maven y elige **Ejecutar proyecto** para abrir la ventana.
+
 Si ves **Sin conexión**, revisa que PostgreSQL esté abierto, que la base se llame como indica `.env` y que el usuario y la contraseña sean correctos. Cierra la ventana para salir.
 
 ## Cuidar la contraseña

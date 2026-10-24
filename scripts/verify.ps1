@@ -13,6 +13,15 @@ try {
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
         throw "No se encontró Git; se necesita para revisar qué archivos están versionados."
     }
+    $netbeansActionsPath = Join-Path $projectRoot "nbactions.xml"
+    if (-not (Test-Path $netbeansActionsPath)) {
+        throw "NetBeans debe iniciar la aplicación con el objetivo javafx:run definido en nbactions.xml."
+    }
+    [xml]$netbeansActions = Get-Content -Raw $netbeansActionsPath
+    $runAction = @($netbeansActions.actions.action | Where-Object { $_.actionName -eq "run" })
+    if ($runAction.Count -ne 1 -or @($runAction[0].goals.goal) -notcontains "javafx:run") {
+        throw "La acción Run de NetBeans debe usar javafx:run para iniciar la aplicación JavaFX."
+    }
     if ($WithDatabaseIntegration -and [string]::IsNullOrWhiteSpace($env:NORTHWIND_TEST_DB_PORT)) {
         throw "Define NORTHWIND_TEST_DB_PORT para habilitar la consulta opcional a PostgreSQL."
     }
