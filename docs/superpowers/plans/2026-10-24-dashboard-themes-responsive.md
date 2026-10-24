@@ -41,7 +41,7 @@
 - [x] Write tests for default/invalid theme fallback, persistence, and toggling; run them to confirm RED.
 - [x] Write tests for 3, 2, and 1-column breakpoints and proportional chart height; run them to confirm RED.
 - [x] Implement the helpers with dark as the first-run theme and deterministic breakpoints; run both focused test classes to confirm GREEN.
-- [ ] Commit as `feat: add theme preferences and responsive layout rules`.
+- [x] Commit as `feat: add theme preferences and responsive layout rules`.
 
 ### Task 2: Apply themes to the dashboard
 
@@ -54,7 +54,7 @@
 - [x] Preserve the selection in local preferences when the user changes it.
 - [x] Match original indigo colors in dark mode and keep the light palette coherent; style chart plots, axes, legends, fields, focus, and hover states.
 - [x] Reflow header controls without changing their actions; load FXML successfully.
-- [ ] Commit as `feat: add light and dark dashboard themes`.
+- [x] Commit as `feat: add light and dark dashboard themes`.
 
 ### Task 3: Scale cards and window proportions
 
@@ -66,16 +66,18 @@
 - [x] Bind report card and chart dimensions to `ReportGridLayout.calculate` when the scroll viewport changes width.
 - [x] Remove fixed card widths and adjust window size/minimums to available display bounds.
 - [x] Verify card positions and widths after resizing to wide, medium, and narrow stage sizes.
-- [ ] Commit as `feat: scale dashboard cards with the window`.
+- [x] Commit as `feat: scale dashboard cards with the window`.
 
 ### Task 4: Visual review and final verification
 
 **Files:**
 - Modify: `src/test/java/com/northwinddw/ui/DashboardScreenshotTest.java`
+- Create: `src/main/java/com/northwinddw/data/DashboardDataSource.java`
+- Modify: `src/main/java/com/northwinddw/data/AnalyticsRepository.java`, `src/main/java/com/northwinddw/ui/DashboardController.java`
 - Create/modify: `docs/screenshots/dashboard.png`, `docs/screenshots/dashboard-dark.png`, `docs/screenshots/connection-error.png`
 - Modify: `README.md`, `docs/engineering-review.md`
 
-- [ ] Capture both connected themes and a failed-connection state; inspect the resulting images.
-- [ ] Run `scripts/verify.ps1` after the temporary PostgreSQL fixture is cleaned up.
-- [ ] Confirm the working tree contains no `.env` or temporary database and stays on `main`.
-- [ ] Commit as `docs: show dashboard themes and responsive behavior`.
+- [x] Capture both themes using a deterministic data sample plus a failed-connection state; inspect the resulting images.
+- [x] Run `scripts/verify.ps1` after the temporary PostgreSQL fixture is cleaned up.
+- [x] Confirm the working tree contains no `.env` or temporary database and stays on `main`.
+- [x] Commit as `docs: show dashboard themes and responsive behavior`.

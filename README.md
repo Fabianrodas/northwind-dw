@@ -4,7 +4,13 @@ Northwind DW reúne los datos comerciales de ejemplo de Northwind en una ventana
 
 ## Así se ve
 
-![Tablero de ventas conectado a la base Northwind](docs/screenshots/dashboard.png)
+Al abrirse, la aplicación usa el tema oscuro, con la paleta del proyecto original. Puedes cambiar a modo claro desde la esquina superior derecha; tu elección se conserva para la próxima vez. Las tarjetas se acomodan en tres, dos o una columna según el ancho de la ventana.
+
+Las siguientes imágenes muestran ambos temas con valores de ejemplo:
+
+![Tablero de ventas en modo oscuro](docs/screenshots/dashboard-dark.png)
+
+![Tablero de ventas en modo claro](docs/screenshots/dashboard.png)
 
 Si la aplicación no encuentra PostgreSQL, informa qué revisar y mantiene la ventana abierta:
 
@@ -19,6 +25,8 @@ Si la aplicación no encuentra PostgreSQL, informa qué revisar y mantiene la ve
 - Ventas de cada empleado por año.
 - Cantidad de proveedores por país.
 - Filtro por año, resumen de ventas y descarga de informes en PDF o del archivo para preparar la base.
+- Modo claro y oscuro, con la elección guardada para el próximo inicio.
+- Diseño que reorganiza las gráficas al cambiar el tamaño de la ventana.
 
 ## Preparar la aplicación
 
