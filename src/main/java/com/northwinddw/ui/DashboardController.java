@@ -21,6 +21,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -34,10 +35,13 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.prefs.Preferences;
 
 public final class DashboardController {
     private static final String ALL_YEARS = "Todos los años";
+    private static final Preferences USER_PREFERENCES = Preferences.userNodeForPackage(DashboardTheme.class);
 
+    @FXML private BorderPane dashboardRoot;
     @FXML private Label connectionBadge;
     @FXML private Label statusLabel;
     @FXML private Label revenueValue;
@@ -48,6 +52,7 @@ public final class DashboardController {
     @FXML private Button refreshButton;
     @FXML private Button exportPdfButton;
     @FXML private Button exportSqlButton;
+    @FXML private Button themeToggleButton;
     @FXML private LineChart<String, Number> quarterlyChart;
     @FXML private PieChart categoryChart;
     @FXML private BarChart<Number, String> countryChart;
@@ -58,6 +63,8 @@ public final class DashboardController {
     private final AnalyticsRepository repository;
     private final DashboardExporter exporter;
     private final String configurationError;
+    private final Preferences themePreferences;
+    private DashboardTheme theme;
     private final ExecutorService background = Executors.newSingleThreadExecutor(task -> {
         Thread thread = new Thread(task, "northwind-background");
         thread.setDaemon(true);
@@ -68,9 +75,16 @@ public final class DashboardController {
     private boolean settingYears;
 
     public DashboardController(AnalyticsRepository repository, DashboardExporter exporter, String configurationError) {
+        this(repository, exporter, configurationError, DashboardTheme.load(USER_PREFERENCES), USER_PREFERENCES);
+    }
+
+    public DashboardController(AnalyticsRepository repository, DashboardExporter exporter, String configurationError,
+                               DashboardTheme initialTheme, Preferences themePreferences) {
         this.repository = repository;
         this.exporter = exporter;
         this.configurationError = configurationError;
+        this.theme = initialTheme;
+        this.themePreferences = themePreferences;
     }
 
     @FXML
@@ -86,6 +100,7 @@ public final class DashboardController {
         refreshButton.setTooltip(new Tooltip("Vuelve a consultar los datos del almacén."));
         exportPdfButton.setTooltip(new Tooltip("Guarda un informe con el resumen y los seis análisis."));
         exportSqlButton.setTooltip(new Tooltip("Guarda el script para preparar una base vacía."));
+        applyTheme();
         exportPdfButton.setDisable(true);
         setConnectionState("Conectando…", "status-loading");
         statusLabel.setText("Preparando el tablero…");
@@ -95,6 +110,21 @@ public final class DashboardController {
         } else {
             refresh();
         }
+    }
+
+    @FXML
+    private void toggleTheme() {
+        theme = theme.next();
+        theme.save(themePreferences);
+        applyTheme();
+    }
+
+    private void applyTheme() {
+        dashboardRoot.getStyleClass().removeAll(DashboardTheme.LIGHT.styleClass(), DashboardTheme.DARK.styleClass());
+        dashboardRoot.getStyleClass().add(theme.styleClass());
+        themeToggleButton.setText(theme.toggleLabel());
+        themeToggleButton.setAccessibleText("Cambiar al " + theme.toggleLabel().toLowerCase());
+        themeToggleButton.setTooltip(new Tooltip("Cambiar la apariencia del tablero."));
     }
 
     @FXML

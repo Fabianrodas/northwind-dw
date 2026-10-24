@@ -50,10 +50,10 @@
 - Modify: `src/main/resources/fxml/dashboard.fxml`
 - Modify: `src/main/resources/css/dashboard.css`
 
-- [ ] Add an accessible theme button beside the connection state and apply the selected class to the root.
-- [ ] Preserve the selection in local preferences when the user changes it.
-- [ ] Match original indigo colors in dark mode and keep the light palette coherent; style chart plots, axes, legends, fields, focus, and hover states.
-- [ ] Reflow header controls without changing their actions; load FXML successfully.
+- [x] Add an accessible theme button beside the connection state and apply the selected class to the root.
+- [x] Preserve the selection in local preferences when the user changes it.
+- [x] Match original indigo colors in dark mode and keep the light palette coherent; style chart plots, axes, legends, fields, focus, and hover states.
+- [x] Reflow header controls without changing their actions; load FXML successfully.
 - [ ] Commit as `feat: add light and dark dashboard themes`.
 
 ### Task 3: Scale cards and window proportions

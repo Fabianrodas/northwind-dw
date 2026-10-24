@@ -18,7 +18,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane styleClass="app-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.northwinddw.ui.DashboardController">
+<BorderPane fx:id="dashboardRoot" styleClass="app-root theme-dark" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.northwinddw.ui.DashboardController">
     <top>
         <VBox styleClass="page-header" spacing="18">
             <padding>
@@ -31,15 +31,18 @@
                     <Label text="Una vista clara de los datos comerciales de Northwind." styleClass="page-subtitle" />
                 </VBox>
                 <Region HBox.hgrow="ALWAYS" />
-                <HBox alignment="CENTER_RIGHT" spacing="10" styleClass="header-actions">
+                <HBox alignment="CENTER_RIGHT" spacing="10">
                     <Label fx:id="connectionBadge" text="Conectando…" styleClass="status-badge status-loading" />
-                    <Label fx:id="yearLabel" text="Periodo" styleClass="control-label" />
-                    <ComboBox fx:id="yearFilter" accessibleText="Filtrar informes por año" prefWidth="150" />
-                    <Button fx:id="refreshButton" onAction="#refresh" text="Actualizar" styleClass="button-secondary" />
-                    <Button fx:id="exportPdfButton" onAction="#exportPdf" text="Exportar PDF" styleClass="button-primary" />
-                    <Button fx:id="exportSqlButton" onAction="#exportSql" text="Descargar SQL" styleClass="button-secondary" />
+                    <Button fx:id="themeToggleButton" onAction="#toggleTheme" text="Modo claro" styleClass="button-secondary theme-toggle" />
                 </HBox>
             </HBox>
+            <FlowPane hgap="10" vgap="8" alignment="CENTER_LEFT" styleClass="header-actions">
+                <Label fx:id="yearLabel" text="Periodo" styleClass="control-label" />
+                <ComboBox fx:id="yearFilter" accessibleText="Filtrar informes por año" prefWidth="150" />
+                <Button fx:id="refreshButton" onAction="#refresh" text="Actualizar" styleClass="button-secondary" />
+                <Button fx:id="exportPdfButton" onAction="#exportPdf" text="Exportar PDF" styleClass="button-primary" />
+                <Button fx:id="exportSqlButton" onAction="#exportSql" text="Descargar SQL" styleClass="button-secondary" />
+            </FlowPane>
             <HBox spacing="14" styleClass="summary-row">
                 <VBox styleClass="summary-card" HBox.hgrow="ALWAYS">
                     <Label text="VENTAS REGISTRADAS" styleClass="summary-caption" />
