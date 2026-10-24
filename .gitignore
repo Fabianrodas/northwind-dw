@@ -1,0 +1,19 @@
+# Local database credentials
+.env
+.env.*
+!.env.example
+postgresql_login.txt
+*password*.txt
+*login*.txt
+
+# Maven output and temporary verification data
+target/
+.tmp-postgres/
+.tmp-reference/
+*.log
+.superpowers/
+
+# IDE metadata
+.idea/
+.vscode/
+*.iml
