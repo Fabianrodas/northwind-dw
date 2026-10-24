@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
 
-public final class AnalyticsRepository {
+public final class AnalyticsRepository implements DashboardDataSource {
     private static final String YEAR_FILTER = "(CAST(? AS integer) IS NULL OR dt.year = ?)";
 
     private static final String SUMMARY_SQL = """
@@ -100,6 +100,7 @@ public final class AnalyticsRepository {
         this.connectionFactory = connectionFactory;
     }
 
+    @Override
     public DashboardData loadDashboard(Integer year) throws SQLException {
         if (year != null && (year < 1000 || year > 9999)) {
             throw new IllegalArgumentException("El año debe tener cuatro dígitos.");

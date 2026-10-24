@@ -1,6 +1,6 @@
 package com.northwinddw.ui;
 
-import com.northwinddw.data.AnalyticsRepository;
+import com.northwinddw.data.DashboardDataSource;
 import com.northwinddw.model.DashboardData;
 import com.northwinddw.model.ReportRows.CategoryRevenue;
 import com.northwinddw.model.ReportRows.CountryRevenue;
@@ -71,7 +71,7 @@ public final class DashboardController {
     @FXML private LineChart<String, Number> employeeChart;
     @FXML private BarChart<Number, String> supplierChart;
 
-    private final AnalyticsRepository repository;
+    private final DashboardDataSource repository;
     private final DashboardExporter exporter;
     private final String configurationError;
     private final Preferences themePreferences;
@@ -85,11 +85,11 @@ public final class DashboardController {
     private DashboardData currentData;
     private boolean settingYears;
 
-    public DashboardController(AnalyticsRepository repository, DashboardExporter exporter, String configurationError) {
+    public DashboardController(DashboardDataSource repository, DashboardExporter exporter, String configurationError) {
         this(repository, exporter, configurationError, DashboardTheme.load(USER_PREFERENCES), USER_PREFERENCES);
     }
 
-    public DashboardController(AnalyticsRepository repository, DashboardExporter exporter, String configurationError,
+    public DashboardController(DashboardDataSource repository, DashboardExporter exporter, String configurationError,
                                DashboardTheme initialTheme, Preferences themePreferences) {
         this.repository = repository;
         this.exporter = exporter;

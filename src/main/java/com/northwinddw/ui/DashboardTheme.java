@@ -4,8 +4,8 @@ import java.util.Objects;
 import java.util.prefs.Preferences;
 
 public enum DashboardTheme {
-    LIGHT("theme-light", "Claro"),
-    DARK("theme-dark", "Oscuro");
+    LIGHT("theme-light", "claro"),
+    DARK("theme-dark", "oscuro");
 
     private static final String PREFERENCE_KEY = "dashboard-theme";
 
