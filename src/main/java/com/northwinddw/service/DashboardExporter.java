@@ -1,16 +1,13 @@
 package com.northwinddw.service;
 
-import com.itextpdf.kernel.geom.PageSize;
-import com.itextpdf.io.font.constants.StandardFonts;
-import com.itextpdf.kernel.font.PdfFont;
-import com.itextpdf.kernel.font.PdfFontFactory;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.Document;
-import com.itextpdf.layout.element.Cell;
-import com.itextpdf.layout.element.Paragraph;
-import com.itextpdf.layout.element.Table;
-import com.itextpdf.layout.properties.UnitValue;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import com.northwinddw.model.DashboardData;
 import com.northwinddw.model.RevenueSummary;
 import com.northwinddw.ui.DashboardFormat;
@@ -21,34 +18,34 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public final class DashboardExporter {
     private static final String SQL_RESOURCE = "/db/northwind_dw.sql";
+    private static final PDFont REGULAR_FONT = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
+    private static final PDFont BOLD_FONT = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
 
     public void exportPdf(DashboardData data, Path destination) throws IOException {
         createParentDirectory(destination);
-        PdfWriter writer = new PdfWriter(destination.toString());
-        Document document = new Document(new PdfDocument(writer), PageSize.A4);
-        try {
-            PdfFont boldFont = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
-            document.setMargins(32, 34, 32, 34);
-            document.add(new Paragraph("Northwind DW | Resumen comercial")
-                    .setFontSize(20)
-                    .setFont(boldFont));
-            document.add(new Paragraph("Periodo: " + period(data.availableYears()))
-                    .setFontSize(10)
-                    .setMarginBottom(8));
-            addSummary(document, data.summary());
-            addQuarterlySales(document, data, boldFont);
-            addCategories(document, data, boldFont);
-            addCountries(document, data, boldFont);
-            addCustomers(document, data, boldFont);
-            addEmployees(document, data, boldFont);
-            addSuppliers(document, data, boldFont);
-        } finally {
-            document.close();
+        try (PDDocument document = new PDDocument()) {
+            PDDocumentInformation information = document.getDocumentInformation();
+            information.setTitle("Northwind DW | Resumen comercial");
+            information.setAuthor("Northwind DW");
+            try (PdfReport report = new PdfReport(document)) {
+                report.add("Northwind DW | Resumen comercial", BOLD_FONT, 20);
+                report.add("Periodo: " + period(data.availableYears()), REGULAR_FONT, 10);
+                report.addBlank();
+                addSummary(report, data.summary());
+                addQuarterlySales(report, data);
+                addCategories(report, data);
+                addCountries(report, data);
+                addCustomers(report, data);
+                addEmployees(report, data);
+                addSuppliers(report, data);
+            }
+            document.save(destination.toFile());
         }
     }
 
@@ -62,75 +59,161 @@ public final class DashboardExporter {
         }
     }
 
-    private static void addSummary(Document document, RevenueSummary summary) {
+    private static void addSummary(PdfReport report, RevenueSummary summary) throws IOException {
         NumberFormat countFormat = NumberFormat.getIntegerInstance(Locale.US);
-        document.add(new Paragraph("Ventas registradas: " + DashboardFormat.usd(summary.totalRevenue())
+        report.add("Ventas registradas: " + DashboardFormat.usd(summary.totalRevenue())
                 + "    Clientes: " + countFormat.format(summary.customers())
-                + "    Proveedores: " + countFormat.format(summary.suppliers()))
-                .setFontSize(11)
-                .setMarginBottom(12));
+                + "    Proveedores: " + countFormat.format(summary.suppliers()), REGULAR_FONT, 11);
+        report.addBlank();
     }
 
-    private static void addQuarterlySales(Document document, DashboardData data, PdfFont boldFont) {
-        addTable(document, boldFont, "Ventas por trimestre y año", List.of("Año", "Trimestre", "Ventas"),
+    private static void addQuarterlySales(PdfReport report, DashboardData data) throws IOException {
+        addTable(report, "Ventas por trimestre y año", List.of("Año", "Trimestre", "Ventas"),
                 data.quarterlySales().stream()
                         .map(row -> List.of(String.valueOf(row.year()), row.quarter(), DashboardFormat.usd(row.revenue())))
                         .toList());
     }
 
-    private static void addCategories(Document document, DashboardData data, PdfFont boldFont) {
-        addTable(document, boldFont, "Participación por categoría", List.of("Categoría", "Ventas", "Participación"),
+    private static void addCategories(PdfReport report, DashboardData data) throws IOException {
+        addTable(report, "Participación por categoría", List.of("Categoría", "Ventas", "Participación"),
                 data.categoryRevenue().stream()
                         .map(row -> List.of(row.category(), DashboardFormat.usd(row.revenue()), DashboardFormat.percentage(row.percentage())))
                         .toList());
     }
 
-    private static void addCountries(Document document, DashboardData data, PdfFont boldFont) {
-        addTable(document, boldFont, "Diez países con más ventas", List.of("País", "Ventas"),
+    private static void addCountries(PdfReport report, DashboardData data) throws IOException {
+        addTable(report, "Diez países con más ventas", List.of("País", "Ventas"),
                 data.topCountries().stream()
                         .map(row -> List.of(row.country(), DashboardFormat.usd(row.revenue())))
                         .toList());
     }
 
-    private static void addCustomers(Document document, DashboardData data, PdfFont boldFont) {
-        addTable(document, boldFont, "Diez clientes con más ventas", List.of("Cliente", "Ventas"),
+    private static void addCustomers(PdfReport report, DashboardData data) throws IOException {
+        addTable(report, "Diez clientes con más ventas", List.of("Cliente", "Ventas"),
                 data.topCustomers().stream()
                         .map(row -> List.of(row.customer(), DashboardFormat.usd(row.revenue())))
                         .toList());
     }
 
-    private static void addEmployees(Document document, DashboardData data, PdfFont boldFont) {
-        addTable(document, boldFont, "Ventas por empleado y año", List.of("Año", "Empleado", "Ventas"),
+    private static void addEmployees(PdfReport report, DashboardData data) throws IOException {
+        addTable(report, "Ventas por empleado y año", List.of("Año", "Empleado", "Ventas"),
                 data.employeeRevenue().stream()
                         .map(row -> List.of(String.valueOf(row.year()), row.employee(), DashboardFormat.usd(row.revenue())))
                         .toList());
     }
 
-    private static void addSuppliers(Document document, DashboardData data, PdfFont boldFont) {
-        addTable(document, boldFont, "Proveedores por país", List.of("País", "Proveedores"),
+    private static void addSuppliers(PdfReport report, DashboardData data) throws IOException {
+        addTable(report, "Proveedores por país", List.of("País", "Proveedores"),
                 data.suppliersByCountry().stream()
                         .map(row -> List.of(row.country(), String.valueOf(row.supplierCount())))
                         .toList());
     }
 
-    private static void addTable(Document document, PdfFont boldFont, String title,
-                                 List<String> headers, List<List<String>> rows) {
-        document.add(new Paragraph(title).setFontSize(13).setFont(boldFont).setMarginTop(9).setMarginBottom(4));
+    private static void addTable(PdfReport report, String title,
+                                 List<String> headers, List<List<String>> rows) throws IOException {
+        report.addBlank();
+        report.add(title, BOLD_FONT, 13);
+        report.add(String.join("   |   ", headers), BOLD_FONT, 9);
         if (rows.isEmpty()) {
-            document.add(new Paragraph("Sin datos para mostrar.").setFontSize(9));
+            report.add("Sin datos para mostrar.", REGULAR_FONT, 9);
             return;
         }
-
-        Table table = new Table(UnitValue.createPercentArray(headers.size())).useAllAvailableWidth();
-        for (String header : headers) {
-            table.addHeaderCell(new Cell().add(new Paragraph(header).setFont(boldFont).setFontSize(9)));
-        }
         for (List<String> row : rows) {
-            for (String value : row) {
-                table.addCell(new Cell().add(new Paragraph(value).setFontSize(8)));
+            report.add(String.join("   |   ", row), REGULAR_FONT, 8);
+        }
+        report.addBlank();
+    }
+
+    private static final class PdfReport implements AutoCloseable {
+        private static final float MARGIN = 36;
+        private static final float LINE_GAP = 5;
+
+        private final PDDocument document;
+        private PDPageContentStream content;
+        private float cursorY;
+
+        private PdfReport(PDDocument document) throws IOException {
+            this.document = document;
+            nextPage();
+        }
+
+        private void add(String text, PDFont font, float fontSize) throws IOException {
+            for (String line : wrap(text, font, fontSize)) {
+                if (cursorY < MARGIN + fontSize) {
+                    nextPage();
+                }
+                content.beginText();
+                content.setFont(font, fontSize);
+                content.newLineAtOffset(MARGIN, cursorY);
+                content.showText(line);
+                content.endText();
+                cursorY -= fontSize + LINE_GAP;
             }
         }
-        document.add(table);
+
+        private void addBlank() {
+            cursorY -= LINE_GAP + 2;
+        }
+
+        private List<String> wrap(String text, PDFont font, float fontSize) throws IOException {
+            float maxWidth = PDRectangle.A4.getWidth() - (2 * MARGIN);
+            List<String> lines = new ArrayList<>();
+            StringBuilder line = new StringBuilder();
+            for (String word : text.trim().split("\\s+")) {
+                String candidate = line.isEmpty() ? word : line + " " + word;
+                if (font.getStringWidth(candidate) * fontSize / 1000 <= maxWidth) {
+                    if (!line.isEmpty()) {
+                        line.append(' ');
+                    }
+                    line.append(word);
+                    continue;
+                }
+
+                if (!line.isEmpty()) {
+                    lines.add(line.toString());
+                    line.setLength(0);
+                }
+                if (font.getStringWidth(word) * fontSize / 1000 <= maxWidth) {
+                    line.append(word);
+                    continue;
+                }
+
+                StringBuilder segment = new StringBuilder();
+                for (int offset = 0; offset < word.length();) {
+                    int codePoint = word.codePointAt(offset);
+                    String character = new String(Character.toChars(codePoint));
+                    String next = segment + character;
+                    if (!segment.isEmpty() && font.getStringWidth(next) * fontSize / 1000 > maxWidth) {
+                        lines.add(segment.toString());
+                        segment.setLength(0);
+                    }
+                    segment.append(character);
+                    offset += Character.charCount(codePoint);
+                }
+                line.append(segment);
+            }
+            if (!line.isEmpty()) {
+                lines.add(line.toString());
+            }
+            return lines;
+        }
+
+        private void nextPage() throws IOException {
+            if (content != null) {
+                content.close();
+            }
+            PDPage page = new PDPage(PDRectangle.A4);
+            document.addPage(page);
+            content = new PDPageContentStream(document, page);
+            cursorY = page.getMediaBox().getHeight() - MARGIN;
+        }
+
+        @Override
+        public void close() throws IOException {
+            if (content != null) {
+                content.close();
+            }
+        }
     }
 
     private static String period(List<Integer> years) {

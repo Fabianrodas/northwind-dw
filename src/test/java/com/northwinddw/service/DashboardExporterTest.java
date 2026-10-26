@@ -3,9 +3,9 @@ package com.northwinddw.service;
 import com.northwinddw.model.DashboardData;
 import com.northwinddw.model.ReportRows.QuarterlySales;
 import com.northwinddw.model.RevenueSummary;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfReader;
-import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -32,11 +33,30 @@ class DashboardExporterTest {
         byte[] contents = Files.readAllBytes(pdf);
         assertTrue(new String(contents, 0, 5, StandardCharsets.US_ASCII).equals("%PDF-"));
         assertTrue(contents.length > 500);
-        PdfDocument document = new PdfDocument(new PdfReader(pdf.toString()));
-        String text = PdfTextExtractor.getTextFromPage(document.getPage(1));
-        document.close();
+        String text;
+        try (PDDocument document = Loader.loadPDF(pdf.toFile())) {
+            text = new PDFTextStripper().getText(document);
+        }
         assertTrue(text.contains("123.45"));
         assertTrue(text.contains("1996"));
+        assertTrue(text.contains("Ventas por trimestre y año"));
+    }
+
+    @Test
+    void continuesLongReportsAcrossPages() throws IOException {
+        List<QuarterlySales> quarters = new ArrayList<>();
+        for (int index = 0; index < 150; index++) {
+            quarters.add(new QuarterlySales(1950 + index / 4, "Q" + (index % 4 + 1), new BigDecimal("123.45")));
+        }
+        DashboardData longDashboard = new DashboardData(new RevenueSummary(new BigDecimal("123.45"), 2, 1),
+                quarters, List.of(), List.of(), List.of(), List.of(), List.of(), List.of(1950, 1987));
+        Path pdf = temporaryDirectory.resolve("long-dashboard.pdf");
+
+        new DashboardExporter().exportPdf(longDashboard, pdf);
+
+        try (PDDocument document = Loader.loadPDF(pdf.toFile())) {
+            assertTrue(document.getNumberOfPages() > 1);
+        }
     }
 
     @Test

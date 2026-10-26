@@ -7,13 +7,22 @@
     <groupId>com.northwinddw</groupId>
     <artifactId>northwind-dw</artifactId>
     <version>1.0.0</version>
+    <name>Northwind DW</name>
+    <description>Local academic dashboard for exploring the public Northwind sample data.</description>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/license/mit/</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>21</maven.compiler.release>
-        <javafx.version>21.0.2</javafx.version>
-        <postgresql.version>42.6.0</postgresql.version>
-        <itext.version>9.0.0</itext.version>
+        <javafx.version>21.0.10</javafx.version>
+        <postgresql.version>42.7.14</postgresql.version>
+        <pdfbox.version>3.0.8</pdfbox.version>
         <junit.version>5.10.2</junit.version>
     </properties>
 
@@ -34,9 +43,9 @@
             <version>${postgresql.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.itextpdf</groupId>
-            <artifactId>layout</artifactId>
-            <version>${itext.version}</version>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>${pdfbox.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
