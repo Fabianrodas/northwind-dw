@@ -10,6 +10,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
@@ -47,6 +48,10 @@ public final class Main extends Application {
         Scene scene = new Scene(root, windowWidth, windowHeight);
         scene.getStylesheets().add(Main.class.getResource("/css/dashboard.css").toExternalForm());
         stage.setTitle("Northwind DW | Ventas y operaciones");
+        var appIcon = Main.class.getResource("/images/northwind.png");
+        if (appIcon != null) {
+            stage.getIcons().add(new Image(appIcon.toExternalForm()));
+        }
         stage.setScene(scene);
         stage.setMinWidth(Math.min(720, windowWidth));
         stage.setMinHeight(Math.min(620, windowHeight));

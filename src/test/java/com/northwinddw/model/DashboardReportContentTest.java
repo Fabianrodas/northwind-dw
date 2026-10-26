@@ -23,18 +23,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class DashboardReportContentTest {
     @ParameterizedTest
     @MethodSource("reportExpectations")
-    void buildsOnlyTheSelectedReportRowsAndQrSummary(DashboardReport report, String title, String context,
-                                                     List<String> firstRow, String otherReportMarker) {
+    void buildsOnlyTheSelectedReportRows(DashboardReport report, String title, String context,
+                                         List<String> firstRow, String otherReportMarker) {
         DashboardReportContent content = DashboardReportContent.from(report, sampleData(), null);
 
         assertEquals(title, content.title());
         assertEquals(context, content.context());
         assertEquals("Todos los años", content.period());
         assertEquals(firstRow, content.rows().getFirst());
-        assertTrue(content.qrText().contains(title));
-        assertTrue(content.qrText().contains("Todos los años"));
-        assertTrue(content.qrText().contains(firstRow.getFirst()));
-        assertFalse(content.qrText().contains(otherReportMarker));
+        assertFalse(content.rows().stream().flatMap(List::stream).toList().contains(otherReportMarker));
     }
 
     @Test
@@ -43,21 +40,18 @@ class DashboardReportContentTest {
                 DashboardReport.QUARTERLY_SALES, sampleYear(1997), 1997);
 
         assertEquals("1997", content.period());
-        assertTrue(content.qrText().contains("1997"));
-        assertFalse(content.qrText().contains("1998"));
         assertEquals(List.of("1997", "T1", "$12.50"), content.rows().getFirst());
     }
 
     @ParameterizedTest
     @EnumSource(DashboardReport.class)
-    void describesEmptyReportsInTheQrSummary(DashboardReport report) {
+    void keepsEmptyReportRowsEmpty(DashboardReport report) {
         DashboardData emptyData = new DashboardData(new RevenueSummary(BigDecimal.ZERO, 0, 0),
                 List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of());
 
         DashboardReportContent content = DashboardReportContent.from(report, emptyData, null);
 
         assertTrue(content.rows().isEmpty());
-        assertTrue(content.qrText().contains("Sin datos para mostrar."));
     }
 
     private static Stream<Arguments> reportExpectations() {

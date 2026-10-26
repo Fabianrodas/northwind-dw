@@ -10,6 +10,7 @@ import com.northwinddw.model.ReportRows.CustomerRevenue;
 import com.northwinddw.model.ReportRows.EmployeeRevenue;
 import com.northwinddw.model.ReportRows.QuarterlySales;
 import com.northwinddw.model.ReportRows.SuppliersByCountry;
+import com.northwinddw.service.ChartDownloadServer;
 import com.northwinddw.service.DashboardExporter;
 import com.northwinddw.service.DashboardQrService;
 import com.google.zxing.WriterException;
@@ -49,14 +50,19 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javax.imageio.ImageIO;
+
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
@@ -107,6 +113,8 @@ public final class DashboardController {
     private final DashboardDataSource repository;
     private final DashboardExporter exporter;
     private final DashboardQrService qrService = new DashboardQrService();
+    private final Map<DashboardReport, ChartDownloadServer> qrDownloadServers =
+            new EnumMap<>(DashboardReport.class);
     private final String configurationError;
     private final Preferences themePreferences;
     private DashboardTheme theme;
@@ -151,7 +159,7 @@ public final class DashboardController {
         exportPdfButton.setTooltip(new Tooltip("Guarda un informe con el resumen y los seis análisis."));
         exportSqlButton.setTooltip(new Tooltip("Guarda el script para preparar una base vacía."));
         detailPdfButton.setTooltip(new Tooltip("Guarda este gráfico con su explicación y los datos del periodo elegido."));
-        detailQrButton.setTooltip(new Tooltip("Muestra un código QR con el resumen de este gráfico."));
+        detailQrButton.setTooltip(new Tooltip("Crea un QR para descargar este gráfico en otro dispositivo de la misma red local."));
         applyTheme();
         configureReportCard(quarterlyCard, DashboardReport.QUARTERLY_SALES);
         configureReportCard(categoryCard, DashboardReport.CATEGORY_REVENUE);
@@ -292,7 +300,7 @@ public final class DashboardController {
         detailContext.setAccessibleText(report.context());
         detailPeriod.setAccessibleText("Periodo seleccionado: " + DashboardFormat.yearLabel(loadedYear));
         detailPdfButton.setAccessibleText("Exportar " + report.title() + " como PDF");
-        detailQrButton.setAccessibleText("Generar código QR de " + report.title());
+        detailQrButton.setAccessibleText("Generar QR para descargar " + report.title());
     }
 
     private void resizeDetailChart(double hostWidth) {
@@ -435,12 +443,7 @@ public final class DashboardController {
         DashboardReportContent content = DashboardReportContent.from(reportToExport, currentData, loadedYear);
         BufferedImage chartImage;
         try {
-            Chart chart = chartFor(reportToExport);
-            chart.applyCss();
-            chart.layout();
-            int width = Math.max(1, (int) Math.ceil(chart.getBoundsInLocal().getWidth()));
-            int height = Math.max(1, (int) Math.ceil(chart.getBoundsInLocal().getHeight()));
-            chartImage = snapshotAsBufferedImage(chart.snapshot(new SnapshotParameters(), new WritableImage(width, height)));
+            chartImage = snapshotChart(chartFor(reportToExport));
         } catch (RuntimeException exception) {
             detailStatusLabel.setText("No se pudo preparar la imagen de este gráfico.");
             return;
@@ -475,12 +478,30 @@ public final class DashboardController {
             return;
         }
         DashboardReport report = selectedReport;
-        DashboardReportContent content = DashboardReportContent.from(report, currentData, loadedYear);
         try {
-            BitMatrix qrMatrix = qrService.encode(content.qrText(), 480);
+            ChartDownloadServer previousServer = qrDownloadServers.remove(report);
+            if (previousServer != null) {
+                previousServer.close();
+            }
+            BufferedImage chartImage = snapshotChart(chartFor(report));
+            ByteArrayOutputStream imageBytes = new ByteArrayOutputStream();
+            if (!ImageIO.write(chartImage, "png", imageBytes)) {
+                throw new IOException("No se pudo preparar el gráfico como imagen PNG.");
+            }
+            ChartDownloadServer downloadServer = ChartDownloadServer.startForLocalNetwork(
+                    imageBytes.toByteArray(), chartDownloadFileName(report));
+            BitMatrix qrMatrix;
+            try {
+                qrMatrix = qrService.encode(downloadServer.downloadUri().toASCIIString(), 480);
+            } catch (WriterException | RuntimeException exception) {
+                downloadServer.close();
+                throw exception;
+            }
+            qrDownloadServers.put(report, downloadServer);
+
             Dialog<ButtonType> dialog = new Dialog<>();
             dialog.initOwner(stage());
-            dialog.setTitle("Código QR del gráfico");
+            dialog.setTitle("Descargar gráfico con QR");
             ButtonType saveButton = new ButtonType("Guardar QR como PNG", ButtonBar.ButtonData.OK_DONE);
             DialogPane pane = dialog.getDialogPane();
             pane.getButtonTypes().setAll(saveButton, ButtonType.CLOSE);
@@ -492,21 +513,28 @@ public final class DashboardController {
             preview.setFitWidth(320);
             preview.setFitHeight(320);
             preview.setPreserveRatio(true);
-            preview.setAccessibleText("Código QR con el resumen de " + report.title());
-            Label message = new Label("Escanea el código para consultar el contexto, el periodo y los datos de este gráfico.");
+            preview.setAccessibleText("Código QR para descargar " + report.title() + " como imagen PNG.");
+            Label message = new Label("Escanea el código desde un teléfono conectado a esta misma red local. "
+                    + "El gráfico se descargará como PNG. El enlace dura "
+                    + ChartDownloadServer.DOWNLOAD_LIFETIME_MINUTES + " minutos y requiere que la aplicación siga abierta.");
             message.setWrapText(true);
             VBox contentBox = new VBox(12, message, preview);
             contentBox.setPadding(new Insets(12));
             contentBox.setAlignment(javafx.geometry.Pos.CENTER);
             pane.setContent(contentBox);
             dialog.setResultConverter(button -> button);
+            detailStatusLabel.setText("QR listo para descargar el gráfico desde la misma red local.");
 
             if (dialog.showAndWait().orElse(ButtonType.CLOSE) == saveButton) {
                 saveReportQr(qrMatrix, report);
             }
-        } catch (WriterException | IllegalArgumentException exception) {
-            detailStatusLabel.setText("No se pudo preparar el código QR de este gráfico.");
+        } catch (IOException | WriterException | RuntimeException exception) {
+            detailStatusLabel.setText("No se pudo preparar la descarga. Conecta el equipo a una red Wi-Fi o Ethernet y vuelve a intentarlo.");
         }
+    }
+
+    private static String chartDownloadFileName(DashboardReport report) {
+        return "northwind-" + report.name().toLowerCase(Locale.ROOT).replace('_', '-') + ".png";
     }
 
     private void saveReportQr(BitMatrix qrMatrix, DashboardReport report) {
@@ -549,6 +577,8 @@ public final class DashboardController {
 
     public void shutdown() {
         background.shutdownNow();
+        qrDownloadServers.values().forEach(ChartDownloadServer::close);
+        qrDownloadServers.clear();
     }
 
     private void render(DashboardData data) {
@@ -712,6 +742,14 @@ public final class DashboardController {
         snapshot.getPixelReader().getPixels(0, 0, width, height,
                 PixelFormat.getIntArgbInstance(), pixels, 0, width);
         return image;
+    }
+
+    private static BufferedImage snapshotChart(Chart chart) {
+        chart.applyCss();
+        chart.layout();
+        int width = Math.max(1, (int) Math.ceil(chart.getBoundsInLocal().getWidth()));
+        int height = Math.max(1, (int) Math.ceil(chart.getBoundsInLocal().getHeight()));
+        return snapshotAsBufferedImage(chart.snapshot(new SnapshotParameters(), new WritableImage(width, height)));
     }
 
     private static WritableImage qrImage(BitMatrix matrix) {

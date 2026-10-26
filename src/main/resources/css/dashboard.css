@@ -14,6 +14,10 @@
     -fx-border-width: 0 0 1 0;
 }
 
+.brand-logo {
+    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.12), 8, 0.1, 0, 2);
+}
+
 .eyebrow {
     -fx-text-fill: #1e40af;
     -fx-font-size: 11px;

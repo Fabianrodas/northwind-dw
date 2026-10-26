@@ -14,6 +14,10 @@ No hay versiones con soporte ni un compromiso de respuesta o de publicar futuras
 - Las consultas de la aplicación usan parámetros y las conexiones JDBC se marcan como solo lectura.
 - La base incluida contiene datos de ejemplo públicos; no copies información real o privada allí.
 
+## Descarga mediante QR
+
+Al generar un QR, la aplicación comparte únicamente la imagen PNG del gráfico mediante una dirección temporal en la red local. El enlace incluye un token aleatorio, dura 10 minutos y deja de funcionar al cerrar la aplicación; el servicio solo responde en la dirección privada elegida y rechaza otras rutas o métodos. El teléfono y el computador deben estar conectados a la misma red local. El archivo no se sube a Internet. Usa esta función únicamente con la información de ejemplo incluida y en una red de confianza.
+
 ## Si una contraseña se expone
 
 Cámbiala en PostgreSQL de inmediato. Si llegó a Git, quitar el archivo en un commit nuevo no borra la copia de los commits anteriores: cambia la contraseña y limpia el historial publicado antes de compartir ese repositorio.

@@ -10,6 +10,8 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
@@ -26,6 +28,10 @@
                 <Insets top="24" right="30" bottom="20" left="30" />
             </padding>
             <HBox alignment="CENTER_LEFT" spacing="18">
+                <ImageView fx:id="brandLogo" fitWidth="68" fitHeight="68" preserveRatio="true"
+                           accessibleText="Logotipo de Northwind Traders" focusTraversable="false" styleClass="brand-logo">
+                    <image><Image url="@/images/northwind.png" /></image>
+                </ImageView>
                 <VBox spacing="4">
                     <Label text="NORTHWIND DW" styleClass="eyebrow" />
                     <Label text="Ventas y operaciones" styleClass="page-title" />
@@ -117,7 +123,7 @@
                     </FlowPane>
                     <VBox fx:id="detailPanel" spacing="16" styleClass="detail-panel" visible="false" managed="false">
                         <HBox alignment="CENTER_LEFT" spacing="14" styleClass="detail-heading">
-                            <Button fx:id="backToGridButton" onAction="#returnToGrid" text="← Regresar"
+                            <Button fx:id="backToGridButton" onAction="#returnToGrid" text="Regresar"
                                     accessibleText="Regresar a todos los gráficos" styleClass="button-secondary" />
                             <VBox spacing="4">
                                 <Label fx:id="detailTitle" text="Detalle del informe" styleClass="detail-title" />

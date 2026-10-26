@@ -23,6 +23,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
@@ -67,6 +68,10 @@ class DashboardDetailViewTest {
                         }, new DashboardExporter(), null,
                         DashboardTheme.LIGHT, preferences));
                 Parent root = loader.load();
+                ImageView brandLogo = (ImageView) loader.getNamespace().get("brandLogo");
+                assertNotNull(brandLogo, "The Northwind brand logo should be present in the dashboard header.");
+                assertNotNull(brandLogo.getImage(), "The Northwind logo image should load from app resources.");
+                assertEquals("Logotipo de Northwind Traders", brandLogo.getAccessibleText());
                 Scene scene = new Scene(root, 1200, 900);
                 scene.getStylesheets().add(Main.class.getResource("/css/dashboard.css").toExternalForm());
                 Stage stage = new Stage();
@@ -141,6 +146,7 @@ class DashboardDetailViewTest {
             ComboBox<String> yearFilter = (ComboBox<String>) loader.getNamespace().get("yearFilter");
             Button themeButton = (Button) loader.getNamespace().get("themeToggleButton");
             Button backButton = (Button) loader.getNamespace().get("backToGridButton");
+            assertEquals("Regresar", backButton.getText(), "The back button should not contain a decorative arrow.");
             assertNotNull(detailPanel, "The dashboard should have a chart detail panel.");
             assertNotNull(loader.getNamespace().get("detailPdfButton"));
             assertNotNull(loader.getNamespace().get("detailQrButton"));

@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Let users open each Northwind report in an accessible, responsive detail view and export that report as a PDF or QR image.
+**Goal:** Let users open each Northwind report in an accessible, responsive detail view and export it as a PDF or download the chart image on a phone through a QR code.
 
-**Architecture:** Keep one JavaFX stage and the existing dashboard header, filters, theme, and full-dashboard actions. Swap the report grid for a detail panel that reuses the selected chart and builds its PDF and QR contents from the filtered dashboard data.
+**Architecture:** Keep one JavaFX stage and the existing dashboard header, filters, theme, and full-dashboard actions. Swap the report grid for a detail panel that reuses the selected chart; build the PDF from filtered data and encode a short-lived local download link in the QR.
 
 **Tech Stack:** Java 21, JavaFX 21.0.10, PDFBox 3.0.8, ZXing Core 3.5.4, Maven, JUnit 5.
 
@@ -14,23 +14,25 @@
 
 - Work only on `main`; do not create branches or worktrees.
 - Preserve the current dashboard, six reports, year filter, refresh, full-dashboard PDF, SQL export, and light/dark themes.
-- Do not add network hosting or expose report data outside the local device.
+- Do not send chart images to an external host. Serve only the current PNG through a random, temporary URL on one private network interface.
+- The QR download link expires after 10 minutes and closes when the application exits; scans require the phone and computer on the same local network.
 - Detail PDF and QR content must represent the active report and selected period.
 - Keep layout dimensions responsive and all new controls accessible by keyboard.
 
 ## Review Focus
 
 - Reopening a report after changing year must show the latest filtered rows and period in both exports; test report-content generation with both `null` and a selected year.
-- Empty report data must still produce a readable PDF and valid, scannable QR; test an empty `DashboardData` for every report type.
+- Empty report data must still produce a readable PDF and valid, scannable image link; test an empty `DashboardData` for every report type.
 - PDF output must contain exactly the selected report and its chart image; assert report headings, excluded headings, and one embedded image.
-- QR payloads must fit supported QR capacity and round-trip through ZXing; test long employee/country labels and all report types.
+- QR download links must round-trip through ZXing for all report types. The local endpoint must serve only the selected PNG as an attachment, reject unknown paths/methods, and close on exit or expiration.
 - Returning from detail must restore the same grid position and theme; verify through a JavaFX view test at wide and narrow widths.
 
 ## File Map
 
 - Create `DashboardReport.java`: stable identifiers and labels for the six charts.
-- Create `DashboardReportContent.java`: filtered report title, context, period, table rows, and QR text.
+- Create `DashboardReportContent.java`: filtered report title, context, period, and table rows.
 - Create `DashboardQrService.java`: local QR matrix generation and PNG saving.
+- Create `ChartDownloadServer.java`: short-lived download of one chart PNG over the local network.
 - Modify `DashboardExporter.java`: export a selected report, chart snapshot, and its rows to PDF.
 - Modify `DashboardController.java` and `dashboard.fxml`: accessible detail navigation and filter-aware actions.
 - Modify `dashboard.css`: detail layout, focus, hover, and responsive chart styling in both themes.
@@ -119,6 +121,29 @@
 - [x] **Step 4: Launch `mvn javafx:run`** and verify all six cards, keyboard/mouse navigation, year changes, theme, and responsive sizing in the JavaFX view test; use the live PostgreSQL app to confirm a chart PDF and QR preview/PNG save; use the ZXing round-trip test to verify QR readability.
 - [x] **Step 5: Verify the working tree stays on `main`, `.env` remains ignored, and no project data or credentials entered Git.**
 - [x] **Step 6: Commit** as `docs: document chart details and exports`.
+
+### Task 5: Make QR scanning download the chart and add the Northwind logo
+
+**Files:**
+- Create: `src/main/java/com/northwinddw/service/ChartDownloadServer.java`
+- Test: `src/test/java/com/northwinddw/service/ChartDownloadServerTest.java`
+- Modify: `src/main/java/com/northwinddw/ui/DashboardController.java`
+- Modify: `src/main/resources/fxml/dashboard.fxml`, `src/main/resources/css/dashboard.css`, and `src/main/java/com/northwinddw/Main.java`
+- Create: `src/main/resources/images/northwind.png`
+- Modify: `DashboardReportContent` and its tests to remove the obsolete plain-text QR summary.
+- Modify: `README.md`, `SECURITY.md`, this spec, and generated screenshots.
+
+**Interfaces:**
+- `ChartDownloadServer.startForLocalNetwork(byte[] image, String fileName)` serves one PNG on a private IPv4 address and returns an opaque download URI.
+- `ChartDownloadServer.close()` disables the link and releases its bounded worker resources.
+- The QR encoder receives the download URI; Safari receives `Content-Disposition: attachment` with the chart PNG.
+
+- [x] **Step 1: Add failing tests** for the limited download route, exact PNG attachment headers/body, rejection of unknown paths and methods, server shutdown, a decodable URL QR, logo loading, and the arrow-free Back label.
+- [x] **Step 2: Run focused tests** and confirm the JavaFX view test detects the missing logo. The first local server test also exposed a Java 21 `HttpServer` selector failure in this environment; isolated evidence showed a standard loopback `ServerSocket` works.
+- [x] **Step 3: Implement the bounded local socket service** with a random token, one exact download route, capped request/header sizes, request timeouts, a 10-minute expiry, and shutdown cleanup.
+- [x] **Step 4: Connect QR generation to the rendered chart PNG**, retain saved QR behavior, clean up links on app exit, and remove the former plain-text summary payload.
+- [x] **Step 5: Add the supplied logo to the app header/window icon, remove the arrow from «Regresar», and update the README/security notes and both-theme screenshots.**
+- [x] **Step 6: Run the local download and full verification tests, launch the JavaFX app, inspect the layout, and commit the finished changes on `main`.**
 
 ## Self-review
 

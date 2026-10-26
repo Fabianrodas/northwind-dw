@@ -16,8 +16,7 @@ public record DashboardReportContent(
         String context,
         String period,
         List<String> headers,
-        List<List<String>> rows,
-        String qrText) {
+        List<List<String>> rows) {
 
     public DashboardReportContent {
         Objects.requireNonNull(title, "title");
@@ -25,7 +24,6 @@ public record DashboardReportContent(
         Objects.requireNonNull(period, "period");
         headers = List.copyOf(headers);
         rows = rows.stream().map(List::copyOf).toList();
-        Objects.requireNonNull(qrText, "qrText");
     }
 
     public static DashboardReportContent from(DashboardReport report, DashboardData data, Integer selectedYear) {
@@ -76,20 +74,6 @@ public record DashboardReportContent(
         }
 
         String period = DashboardFormat.yearLabel(selectedYear);
-        StringBuilder qrText = new StringBuilder()
-                .append(report.title()).append('\n')
-                .append(report.context()).append('\n')
-                .append("Periodo: ").append(period).append('\n');
-        if (rows.isEmpty()) {
-            qrText.append("Sin datos para mostrar.");
-        } else {
-            qrText.append(String.join(" | ", headers)).append('\n');
-            for (List<String> row : rows) {
-                qrText.append(String.join(" | ", row)).append('\n');
-            }
-        }
-
-        return new DashboardReportContent(report.title(), report.context(), period, headers, rows,
-                qrText.toString().stripTrailing());
+        return new DashboardReportContent(report.title(), report.context(), period, headers, rows);
     }
 }
