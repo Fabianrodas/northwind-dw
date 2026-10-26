@@ -6,7 +6,7 @@
 
 Esta versión parte de un proyecto académico anterior que desarrollé. La idea original funcionaba, pero necesitaba mejor optimización y cuidado de seguridad; por eso tomé ese trabajo como base y preparé esta versión más pulida.
 
-[Ver el video del sistema anterior](https://youtu.be/N9nk_wDomDY).
+[Ver el video del sistema anterior](https://youtu.be/N9nk_wDomDY). El video aparte incluye la explicación del proceso de ETL que se realizo para llegar al Data Warehouse.
 
 Northwind DW reúne los datos comerciales de ejemplo de Northwind en una ventana sencilla. Permite revisar las ventas a lo largo del tiempo, comparar productos, países, clientes y empleados, y consultar cuántos proveedores hay por país.
 
