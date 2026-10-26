@@ -15,6 +15,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
@@ -43,7 +44,7 @@
                 <Button fx:id="exportPdfButton" onAction="#exportPdf" text="Exportar PDF" styleClass="button-primary" />
                 <Button fx:id="exportSqlButton" onAction="#exportSql" text="Descargar SQL" styleClass="button-secondary" />
             </FlowPane>
-            <HBox spacing="14" styleClass="summary-row">
+            <HBox fx:id="summaryRow" spacing="14" styleClass="summary-row">
                 <VBox styleClass="summary-card" HBox.hgrow="ALWAYS">
                     <Label text="VENTAS REGISTRADAS" styleClass="summary-caption" />
                     <Label fx:id="revenueValue" text="—" styleClass="summary-value" />
@@ -63,12 +64,11 @@
         </VBox>
     </top>
     <center>
-        <ScrollPane fitToWidth="true" styleClass="dashboard-scroll" pannable="true">
+        <ScrollPane fx:id="dashboardScroll" fitToWidth="true" styleClass="dashboard-scroll" pannable="true">
             <content>
-                <FlowPane fx:id="reportsGrid" hgap="16" vgap="16" styleClass="reports-grid">
-                    <padding>
-                        <Insets top="22" right="30" bottom="22" left="30" />
-                    </padding>
+                <VBox spacing="18" styleClass="center-content">
+                    <padding><Insets top="22" right="30" bottom="22" left="30" /></padding>
+                    <FlowPane fx:id="reportsGrid" hgap="16" vgap="16" styleClass="reports-grid">
                     <VBox fx:id="quarterlyCard" prefHeight="320" styleClass="report-card" spacing="8">
                         <Label text="01  Ventas por trimestre" styleClass="report-title" />
                         <Label text="Compara la evolución de cada año." styleClass="report-subtitle" />
@@ -114,7 +114,27 @@
                             <yAxis><CategoryAxis /></yAxis>
                         </BarChart>
                     </VBox>
-                </FlowPane>
+                    </FlowPane>
+                    <VBox fx:id="detailPanel" spacing="16" styleClass="detail-panel" visible="false" managed="false">
+                        <HBox alignment="CENTER_LEFT" spacing="14" styleClass="detail-heading">
+                            <Button fx:id="backToGridButton" onAction="#returnToGrid" text="← Regresar"
+                                    accessibleText="Regresar a todos los gráficos" styleClass="button-secondary" />
+                            <VBox spacing="4">
+                                <Label fx:id="detailTitle" text="Detalle del informe" styleClass="detail-title" />
+                                <Label fx:id="detailContext" text="" wrapText="true" styleClass="detail-context" />
+                                <Label fx:id="detailPeriod" text="Periodo: Todos los años" styleClass="detail-period" />
+                            </VBox>
+                        </HBox>
+                        <StackPane fx:id="detailChartHost" minHeight="320" prefHeight="520" styleClass="detail-chart-host" VBox.vgrow="ALWAYS" />
+                        <HBox alignment="CENTER_LEFT" spacing="10" styleClass="detail-actions">
+                            <Button fx:id="detailPdfButton" onAction="#exportSelectedReportPdf" text="Exportar gráfico PDF"
+                                    styleClass="button-primary" />
+                            <Button fx:id="detailQrButton" onAction="#showSelectedReportQr" text="Generar QR"
+                                    styleClass="button-secondary" />
+                            <Label fx:id="detailStatusLabel" text="" wrapText="true" styleClass="detail-status" />
+                        </HBox>
+                    </VBox>
+                </VBox>
             </content>
         </ScrollPane>
     </center>

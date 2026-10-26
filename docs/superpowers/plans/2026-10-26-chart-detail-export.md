@@ -95,14 +95,14 @@
 - `DashboardController.returnToGrid()` restores the chart to its card, returns to the previous grid position, and moves keyboard focus back to the selected report.
 - `DashboardController.exportSelectedReportPdf()` and `showSelectedReportQr()` use `currentData`, the active year, and the selected report.
 
-- [ ] **Step 1: Add failing JavaFX view tests** for opening each report, accessible Enter/Space activation, returning to the grid, preserving theme/period/scroll, and changing the selected year while in detail.
-- [ ] **Step 2: Run the focused view test**; confirm it fails because the detail panel and navigation are not present.
-- [ ] **Step 3: Add a responsive detail panel** with Back, title, context, a growable chart host, `Exportar gráfico PDF`, `Generar QR`, and `Guardar QR como PNG` in the QR dialog.
-- [ ] **Step 4: Make each existing report card keyboard-focusable and clickable**, and wire its accessible name and visible focus state to the matching report.
-- [ ] **Step 5: Swap the grid and detail panel without replacing the stage**, hiding summary cards in detail while keeping theme, year, refresh, full PDF, SQL, and connection state in the shared header.
-- [ ] **Step 6: Reuse and restore the original chart node**, preserve scroll/selection on back, and keep chart sizing responsive when the detail viewport changes.
-- [ ] **Step 7: Wire report-specific PDF export and the QR preview/save flow**, with errors shown beside the relevant action and the current theme applied to dialogs.
-- [ ] **Step 8: Run the focused JavaFX tests** at wide and narrow widths and confirm all report, navigation, filtering, theme, and accessibility assertions pass.
+- [x] **Step 1: Add failing JavaFX view tests** for opening each report, accessible Enter/Space activation, returning to the grid, preserving theme/period/scroll, and changing the selected year while in detail.
+- [x] **Step 2: Run the focused view test**; confirm it fails because the detail panel and navigation are not present.
+- [x] **Step 3: Add a responsive detail panel** with Back, title, context, a growable chart host, `Exportar gráfico PDF`, `Generar QR`, and `Guardar QR como PNG` in the QR dialog.
+- [x] **Step 4: Make each existing report card keyboard-focusable and clickable**, and wire its accessible name and visible focus state to the matching report.
+- [x] **Step 5: Swap the grid and detail panel without replacing the stage**, hiding summary cards in detail while keeping theme, year, refresh, full PDF, SQL, and connection state in the shared header.
+- [x] **Step 6: Reuse and restore the original chart node**, preserve scroll/selection on back, and keep chart sizing responsive when the detail viewport changes.
+- [x] **Step 7: Wire report-specific PDF export and the QR preview/save flow**, with errors shown beside the relevant action and the current theme applied to dialogs.
+- [x] **Step 8: Run the focused JavaFX tests** at wide and narrow widths and confirm all report, navigation, filtering, theme, and accessibility assertions pass.
 - [ ] **Step 9: Commit** as `feat: add responsive chart detail navigation`.
 
 ### Task 4: Document and verify the completed feature

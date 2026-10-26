@@ -98,6 +98,10 @@
     -fx-background-color: #f8fafc;
 }
 
+.center-content {
+    -fx-background-color: #f8fafc;
+}
+
 .report-card {
     -fx-background-color: #ffffff;
     -fx-border-color: #dbeafe;
@@ -106,6 +110,16 @@
     -fx-background-radius: 12px;
     -fx-padding: 15px 16px 10px 16px;
     -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.07), 12, 0.12, 0, 3);
+    -fx-cursor: hand;
+}
+
+.report-card:hover {
+    -fx-border-color: #93c5fd;
+}
+
+.report-card:focused {
+    -fx-border-color: #1e40af;
+    -fx-border-width: 2px;
 }
 
 .report-title {
@@ -115,6 +129,45 @@
 }
 
 .report-subtitle {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 11px;
+}
+
+.detail-panel {
+    -fx-background-color: transparent;
+}
+
+.detail-heading {
+    -fx-padding: 2px 0 4px 0;
+}
+
+.detail-title {
+    -fx-text-fill: #0f172a;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.detail-context {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 13px;
+}
+
+.detail-period {
+    -fx-text-fill: #1e40af;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.detail-chart-host {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dbeafe;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-padding: 16px;
+    -fx-effect: dropshadow(gaussian, rgba(30, 64, 175, 0.07), 12, 0.12, 0, 3);
+}
+
+.detail-status {
     -fx-text-fill: #64748b;
     -fx-font-size: 11px;
 }
@@ -242,6 +295,7 @@
 }
 
 .theme-dark .app-root,
+.theme-dark .center-content,
 .theme-dark .dashboard-scroll,
 .theme-dark .dashboard-scroll > .viewport,
 .theme-dark .reports-grid {
@@ -285,6 +339,29 @@
 .theme-dark .report-card {
     -fx-background-color: #272952;
     -fx-border-color: #44466f;
+}
+
+.theme-dark .detail-title {
+    -fx-text-fill: #f7f7ff;
+}
+
+.theme-dark .detail-context,
+.theme-dark .detail-period,
+.theme-dark .detail-status {
+    -fx-text-fill: #c2c3d9;
+}
+
+.theme-dark .detail-chart-host {
+    -fx-background-color: #272952;
+    -fx-border-color: #44466f;
+}
+
+.theme-dark .report-card:hover {
+    -fx-border-color: #777fd1;
+}
+
+.theme-dark .report-card:focused {
+    -fx-border-color: #f1cf79;
 }
 
 .theme-dark .summary-caption {
