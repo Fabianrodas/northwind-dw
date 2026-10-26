@@ -4,6 +4,7 @@ import com.northwinddw.Main;
 import com.northwinddw.data.DashboardDataSource;
 import com.northwinddw.service.DashboardExporter;
 import com.northwinddw.model.DashboardData;
+import com.northwinddw.model.DashboardReport;
 import com.northwinddw.model.RevenueSummary;
 import com.northwinddw.model.ReportRows.CategoryRevenue;
 import com.northwinddw.model.ReportRows.CountryRevenue;
@@ -55,9 +56,10 @@ class DashboardScreenshotTest {
         AtomicReference<Throwable> failure = new AtomicReference<>();
         DashboardData sample = sampleData();
         Platform.startup(() -> openWindow(year -> sample, null, DashboardTheme.LIGHT,
-                outputDirectory.resolve("dashboard.png"), outputDirectory.resolve("dashboard-dark.png"), () ->
+                outputDirectory.resolve("dashboard.png"), outputDirectory.resolve("dashboard-dark.png"),
+                outputDirectory.resolve("dashboard-detail.png"), outputDirectory.resolve("dashboard-detail-dark.png"), () ->
                 openWindow(null, "Prueba sin conexión", DashboardTheme.DARK,
-                        outputDirectory.resolve("connection-error.png"), null, () -> {
+                        outputDirectory.resolve("connection-error.png"), null, null, null, () -> {
                     Platform.exit();
                     complete.countDown();
                 }, preferences, failure, complete), preferences, failure, complete));
@@ -69,6 +71,8 @@ class DashboardScreenshotTest {
             }
             assertTrue(Files.size(outputDirectory.resolve("dashboard.png")) > 10_000);
             assertTrue(Files.size(outputDirectory.resolve("dashboard-dark.png")) > 10_000);
+            assertTrue(Files.size(outputDirectory.resolve("dashboard-detail.png")) > 10_000);
+            assertTrue(Files.size(outputDirectory.resolve("dashboard-detail-dark.png")) > 10_000);
             assertTrue(Files.size(outputDirectory.resolve("connection-error.png")) > 10_000);
         } finally {
             preferences.removeNode();
@@ -78,7 +82,8 @@ class DashboardScreenshotTest {
 
     private static void openWindow(DashboardDataSource source, String configurationError,
                                    DashboardTheme initialTheme, Path destination,
-                                   Path secondDestination, Runnable onCaptured, Preferences preferences,
+                                   Path secondDestination, Path detailDestination, Path detailDarkDestination,
+                                   Runnable onCaptured, Preferences preferences,
                                    AtomicReference<Throwable> failure, CountDownLatch complete) {
         try {
             DashboardExporter exporter = new DashboardExporter();
@@ -124,6 +129,11 @@ class DashboardScreenshotTest {
                                 themeChange.setOnFinished(themeEvent -> {
                                     try {
                                         saveSnapshot(root, secondDestination);
+                                        if (detailDestination != null) {
+                                            captureDetailThemes(loader, root, stage, controller, detailDestination,
+                                                    detailDarkDestination, onCaptured, failure, complete);
+                                            return;
+                                        }
                                         stage.close();
                                         controller.shutdown();
                                         onCaptured.run();
@@ -161,6 +171,57 @@ class DashboardScreenshotTest {
             Platform.exit();
             complete.countDown();
         }
+    }
+
+    private static void captureDetailThemes(FXMLLoader loader, Parent root, Stage stage,
+                                            DashboardController controller, Path lightDestination,
+                                            Path darkDestination, Runnable onCaptured,
+                                            AtomicReference<Throwable> failure, CountDownLatch complete) {
+        Button themeButton = (Button) loader.getNamespace().get("themeToggleButton");
+        themeButton.fire(); // dark to light
+        PauseTransition switchToLight = new PauseTransition(Duration.millis(350));
+        switchToLight.setOnFinished(event -> {
+            try {
+                controller.openDetail(DashboardReport.CATEGORY_REVENUE);
+                PauseTransition detailLayout = new PauseTransition(Duration.millis(450));
+                detailLayout.setOnFinished(detailEvent -> {
+                    try {
+                        saveSnapshot(root, lightDestination);
+                        themeButton.fire(); // light to dark
+                        PauseTransition switchToDark = new PauseTransition(Duration.millis(350));
+                        switchToDark.setOnFinished(darkEvent -> {
+                            try {
+                                saveSnapshot(root, darkDestination);
+                                stage.close();
+                                controller.shutdown();
+                                onCaptured.run();
+                            } catch (Throwable exception) {
+                                failure.set(exception);
+                                stage.close();
+                                controller.shutdown();
+                                Platform.exit();
+                                complete.countDown();
+                            }
+                        });
+                        switchToDark.play();
+                    } catch (Throwable exception) {
+                        failure.set(exception);
+                        stage.close();
+                        controller.shutdown();
+                        Platform.exit();
+                        complete.countDown();
+                    }
+                });
+                detailLayout.play();
+            } catch (Throwable exception) {
+                failure.set(exception);
+                stage.close();
+                controller.shutdown();
+                Platform.exit();
+                complete.countDown();
+            }
+        });
+        switchToLight.play();
     }
 
     private static DashboardData sampleData() {

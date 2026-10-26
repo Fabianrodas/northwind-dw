@@ -12,6 +12,12 @@ Las siguientes imágenes muestran ambos temas con valores de ejemplo:
 
 ![Tablero de ventas en modo claro](docs/screenshots/dashboard.png)
 
+Al elegir una tarjeta, puedes ver ese análisis a mayor tamaño. El detalle conserva los filtros y el tema, y permite regresar a la cuadrícula:
+
+![Detalle de un gráfico en modo claro](docs/screenshots/dashboard-detail.png)
+
+![Detalle de un gráfico en modo oscuro](docs/screenshots/dashboard-detail-dark.png)
+
 Si la aplicación no encuentra PostgreSQL, informa qué revisar y mantiene la ventana abierta:
 
 ![Tablero cuando no hay conexión con PostgreSQL](docs/screenshots/connection-error.png)
@@ -25,6 +31,8 @@ Si la aplicación no encuentra PostgreSQL, informa qué revisar y mantiene la ve
 - Ventas de cada empleado por año.
 - Cantidad de proveedores por país.
 - Filtro por año, resumen de ventas y descarga de informes en PDF o del archivo para preparar la base.
+- Detalle ampliado de cada gráfico, con una breve explicación y sus datos para el periodo elegido.
+- Exportación del gráfico seleccionado a PDF, o creación de un código QR con su resumen para guardarlo como imagen PNG.
 - Modo claro y oscuro, con la elección guardada para el próximo inicio.
 - Diseño que reorganiza las gráficas al cambiar el tamaño de la ventana.
 
@@ -49,6 +57,8 @@ Necesitas Java 21, Maven y PostgreSQL instalados. El proyecto incluye los datos 
    ```
 
 Al abrirse, el tablero consulta la base. Usa **Periodo** para elegir un año y **Actualizar** para volver a consultar. **Exportar PDF** guarda un informe con el resumen y los datos de los seis análisis; **Descargar SQL** guarda una copia del archivo de preparación de la base.
+
+Pulsa o selecciona con el teclado una tarjeta para abrirla. En el detalle puedes exportar solo ese gráfico a PDF o generar un QR que incluye su explicación, el periodo y sus cifras; el QR no necesita conexión a Internet y puedes guardarlo como PNG. **Regresar** devuelve la tarjeta al mismo tablero y mantiene el tema y los filtros seleccionados.
 
 En Apache NetBeans, recarga el proyecto Maven y elige **Ejecutar proyecto** para abrir la ventana.
 

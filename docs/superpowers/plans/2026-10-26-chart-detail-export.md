@@ -80,7 +80,7 @@
 - [x] **Step 2: Run the focused PDF test** with Maven; confirm the report-specific exporter method is missing.
 - [x] **Step 3: Implement `exportReportPdf`** with PDFBox and a single-page chart image scaled inside the printable area, followed by the matching report rows with overflow pagination.
 - [x] **Step 4: Run PDF exporter tests** and confirm the selected report, image, values, pagination, and unwritable-path error behavior pass.
-- [ ] **Step 5: Commit** as `feat: export individual report charts to PDF`.
+- [x] **Step 5: Commit** as `feat: export individual report charts to PDF` (`288b3a1`).
 
 ### Task 3: Add the detail view and persistent dashboard controls
 
@@ -103,7 +103,7 @@
 - [x] **Step 6: Reuse and restore the original chart node**, preserve scroll/selection on back, and keep chart sizing responsive when the detail viewport changes.
 - [x] **Step 7: Wire report-specific PDF export and the QR preview/save flow**, with errors shown beside the relevant action and the current theme applied to dialogs.
 - [x] **Step 8: Run the focused JavaFX tests** at wide and narrow widths and confirm all report, navigation, filtering, theme, and accessibility assertions pass.
-- [ ] **Step 9: Commit** as `feat: add responsive chart detail navigation`.
+- [x] **Step 9: Commit** as `feat: add responsive chart detail navigation` (`f84febd`).
 
 ### Task 4: Document and verify the completed feature
 
@@ -113,12 +113,12 @@
 - Modify: `README.md`
 - Modify: `scripts/verify.ps1` only if a new static dependency/license check is needed.
 
-- [ ] **Step 1: Capture the detail view** in dark and light themes using deterministic test data, save `dashboard-detail-dark.png` and `dashboard-detail.png`, and inspect both at desktop and narrow widths.
-- [ ] **Step 2: Add the detail screenshot and explain the drill-down, chart PDF, and QR behavior** in the README without replacing existing light/dark/error captures.
-- [ ] **Step 3: Run `.\scripts\verify.ps1 -WithDatabaseIntegration`** and confirm static checks, all tests, package build, database integration, and clean credential checks pass.
-- [ ] **Step 4: Launch `mvn javafx:run`** and manually verify all six cards, year changes, back navigation, theme toggle, chart PDF, and QR preview/save; use the ZXing round-trip test to verify scan readability.
-- [ ] **Step 5: Verify the working tree stays on `main`, `.env` remains ignored, and no project data or credentials entered Git.**
-- [ ] **Step 6: Commit** as `docs: document chart details and exports`.
+- [x] **Step 1: Capture the detail view** in dark and light themes using deterministic test data, save `dashboard-detail-dark.png` and `dashboard-detail.png`, and inspect both at desktop and narrow widths.
+- [x] **Step 2: Add the detail screenshot and explain the drill-down, chart PDF, and QR behavior** in the README without replacing existing light/dark/error captures.
+- [x] **Step 3: Run `.\scripts\verify.ps1 -WithDatabaseIntegration`** and confirm static checks, all tests, package build, database integration, and clean credential checks pass.
+- [x] **Step 4: Launch `mvn javafx:run`** and verify all six cards, keyboard/mouse navigation, year changes, theme, and responsive sizing in the JavaFX view test; use the live PostgreSQL app to confirm a chart PDF and QR preview/PNG save; use the ZXing round-trip test to verify QR readability.
+- [x] **Step 5: Verify the working tree stays on `main`, `.env` remains ignored, and no project data or credentials entered Git.**
+- [x] **Step 6: Commit** as `docs: document chart details and exports`.
 
 ## Self-review
 
