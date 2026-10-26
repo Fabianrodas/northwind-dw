@@ -40,11 +40,11 @@
 - `DashboardFormat.chartUsd(BigDecimal amount)` returns compact, locale-stable USD text for data labels.
 - `DashboardFormat.quarterLabel(String sourceQuarter)` maps English and existing abbreviated quarter values to `T1`–`T4`, preserving unknown values visibly.
 
-- [ ] **Step 1: Add failing formatting tests** for negative/zero/large USD values, exact cents in full tooltips, and `First`/`T1` normalization to `T1` (same for the four quarters).
-- [ ] **Step 2: Run** `mvn -q -Dtest=DashboardFormatTest test`; confirm the new methods are missing.
-- [ ] **Step 3: Implement** compact USD labels and ordinal quarter normalization without changing `DashboardFormat.usd`.
-- [ ] **Step 4: Run** `mvn -q -Dtest=DashboardFormatTest test`; confirm all cases pass.
-- [ ] **Step 5: Commit** as `feat: add compact chart value formatting`.
+- [x] **Step 1: Add failing formatting tests** for negative/zero/large USD values, exact cents in full tooltips, and `First`/`T1` normalization to `T1` (same for the four quarters).
+- [x] **Step 2: Run** `mvn -q -Dtest=DashboardFormatTest test`; confirm the new methods are missing.
+- [x] **Step 3: Implement** compact USD labels and ordinal quarter normalization without changing `DashboardFormat.usd`.
+- [x] **Step 4: Run** `mvn -q -Dtest=DashboardFormatTest test`; confirm all cases pass.
+- [x] **Step 5: Commit** as `feat: add compact chart value formatting`.
 
 ### Task 2: Match chart type, axes, and employee period view
 
