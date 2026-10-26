@@ -7,11 +7,15 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -22,7 +26,7 @@ class AnalyticsRepositoryIntegrationTest {
         environment.put("NORTHWIND_DB_HOST", System.getenv().getOrDefault("NORTHWIND_TEST_DB_HOST", "127.0.0.1"));
         environment.put("NORTHWIND_DB_PORT", System.getenv("NORTHWIND_TEST_DB_PORT"));
         environment.put("NORTHWIND_DB_NAME", System.getenv().getOrDefault("NORTHWIND_TEST_DB_NAME", "northwind_pentaho"));
-        environment.put("NORTHWIND_DB_USER", System.getenv().getOrDefault("NORTHWIND_TEST_DB_USER", "postgres"));
+        environment.put("NORTHWIND_DB_USER", System.getenv().getOrDefault("NORTHWIND_TEST_DB_USER", "northwind_dw_app"));
         environment.put("NORTHWIND_DB_PASSWORD", System.getenv().getOrDefault("NORTHWIND_TEST_DB_PASSWORD", ""));
         assumeTrue(environment.get("NORTHWIND_DB_PORT") != null, "Set NORTHWIND_TEST_DB_PORT to enable PostgreSQL integration tests.");
 
@@ -55,5 +59,17 @@ class AnalyticsRepositoryIntegrationTest {
         assertTrue(oneYear.quarterlySales().stream().allMatch(row -> row.year() == 1997));
         assertTrue(oneYear.summary().totalRevenue().compareTo(allYears.summary().totalRevenue()) < 0);
         assertEquals(2, openedConnections.get());
+
+        try (Connection connection = delegate.open()) {
+            assertTrue(connection.isReadOnly());
+            connection.setAutoCommit(false);
+            assertThrows(SQLException.class, () -> {
+                try (PreparedStatement statement = connection.prepareStatement(
+                        "UPDATE public.employees SET firstname = firstname WHERE employeeid = 1")) {
+                    statement.executeUpdate();
+                }
+            });
+            connection.rollback();
+        }
     }
 }

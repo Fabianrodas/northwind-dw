@@ -13,6 +13,10 @@ public record DatabaseConfig(String host, int port, String database, String user
         database = required(database, "NORTHWIND_DB_NAME");
         username = required(username, "NORTHWIND_DB_USER");
         password = Objects.requireNonNullElse(password, "");
+        if (password.isBlank()) {
+            throw new IllegalArgumentException(
+                    "NORTHWIND_DB_PASSWORD no puede estar vacía. Configúrala en .env o como variable de entorno.");
+        }
         if (port < 1 || port > 65535) {
             throw new IllegalArgumentException("NORTHWIND_DB_PORT debe estar entre 1 y 65535.");
         }
@@ -35,7 +39,7 @@ public record DatabaseConfig(String host, int port, String database, String user
                 value(environment, file, "HOST", "localhost"),
                 port,
                 value(environment, file, "NAME", "northwind_pentaho"),
-                value(environment, file, "USER", "postgres"),
+                value(environment, file, "USER", "northwind_dw_app"),
                 value(environment, file, "PASSWORD", ""));
     }
 

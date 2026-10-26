@@ -40,14 +40,27 @@ class DatabaseConfigTest {
     }
 
     @Test
-    void usesLocalDefaultsWhenTheDotEnvFileIsMissing() {
-        DatabaseConfig config = DatabaseConfig.from(Map.of(), temporaryDirectory.resolve("missing.env"));
+    void rejectsMissingPasswordWhenTheDotEnvFileIsMissing() {
+        assertThrows(IllegalArgumentException.class, () -> DatabaseConfig.from(
+                Map.of(), temporaryDirectory.resolve("missing.env")));
+    }
+
+    @Test
+    void rejectsBlankDatabasePassword() {
+        assertThrows(IllegalArgumentException.class, () -> DatabaseConfig.from(Map.of(
+                "NORTHWIND_DB_PASSWORD", "   "), temporaryDirectory.resolve("missing.env")));
+    }
+
+    @Test
+    void usesSafeLocalDefaultsWhenCredentialsAreExplicit() {
+        DatabaseConfig config = DatabaseConfig.from(Map.of(
+                "NORTHWIND_DB_PASSWORD", "sample-only-value"), temporaryDirectory.resolve("missing.env"));
 
         assertEquals("localhost", config.host());
         assertEquals(5432, config.port());
         assertEquals("northwind_pentaho", config.database());
-        assertEquals("postgres", config.username());
-        assertEquals("", config.password());
+        assertEquals("northwind_dw_app", config.username());
+        assertEquals("sample-only-value", config.password());
     }
 
     @Test
