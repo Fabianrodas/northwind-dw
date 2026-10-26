@@ -33,15 +33,16 @@ Si la aplicación no encuentra PostgreSQL, informa qué revisar y mantiene la ve
 Necesitas Java 21, Maven y PostgreSQL instalados. El proyecto incluye los datos públicos de Northwind en `src/main/resources/db/northwind_dw.sql`.
 
 1. En PostgreSQL, crea una base vacía llamada `northwind_pentaho`.
-2. Carga el archivo `src/main/resources/db/northwind_dw.sql` en esa base. Si usas pgAdmin, abre la base, abre ese archivo en Query Tool y ejecútalo. La base debe estar vacía.
-3. En la carpeta principal del proyecto, crea tu configuración local copiando el ejemplo. En PowerShell:
+2. Carga `src/main/resources/db/northwind_dw.sql` en esa base. Si usas pgAdmin, abre la base, abre ese archivo en Query Tool y ejecútalo. La base debe estar vacía.
+3. Conéctate a `northwind_pentaho` como administrador y ejecuta `src/main/resources/db/create_readonly_user.sql` una sola vez. En pgAdmin, asigna una contraseña al usuario `northwind_dw_app` desde **Login/Group Roles → Properties → Definition**. No escribas la contraseña en el archivo SQL.
+4. En la carpeta principal del proyecto, crea tu configuración local copiando el ejemplo. En PowerShell:
 
    ```powershell
    Copy-Item .env.example .env
    ```
 
-4. Abre `.env` y escribe el nombre de usuario y la contraseña que usas en PostgreSQL. Si tu instalación usa otro puerto o nombre de base, cambia también esos datos.
-5. Desde PowerShell, en la carpeta principal del proyecto, inicia la aplicación:
+5. Abre `.env` y escribe el usuario `northwind_dw_app` y la contraseña que acabas de asignarle. Si tu instalación usa otro puerto o nombre de base, cambia también esos datos. No uses aquí la cuenta administradora.
+6. Desde PowerShell, en la carpeta principal del proyecto, inicia la aplicación:
 
    ```powershell
    mvn javafx:run
@@ -55,7 +56,9 @@ Si ves **Sin conexión**, revisa que PostgreSQL esté abierto, que la base se ll
 
 ## Cuidar la contraseña
 
-La contraseña va en el archivo local `.env`. Git lo ignora para evitar que se publique por accidente; `.env.example` contiene valores de muestra y sí se comparte. No publiques ni envíes tu `.env`. Si la contraseña del proyecto anterior se compartió o se subió a un repositorio, cámbiala en PostgreSQL.
+La contraseña va en el archivo local `.env`. Git lo ignora para evitar que se publique por accidente; `.env.example` no contiene una contraseña y sí se comparte. La aplicación no acepta una contraseña vacía y consulta la base en modo de solo lectura. No publiques ni envíes tu `.env`. Si una contraseña se compartió o llegó a un repositorio, cámbiala en PostgreSQL; borrar el archivo en un commit nuevo no la elimina de la historia anterior.
+
+La licencia MIT cubre el código propio del proyecto. Las bibliotecas y los datos conservan sus términos; consulta [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). Este proyecto académico no tiene soporte de seguridad ni debe usarse con datos confidenciales; consulta [`SECURITY.md`](SECURITY.md).
 
 ## Revisión del proyecto
 
