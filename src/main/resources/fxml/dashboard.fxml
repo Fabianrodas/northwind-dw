@@ -5,7 +5,6 @@
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
-<?import javafx.scene.chart.PieChart?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
@@ -80,44 +79,53 @@
                         <Label text="Compara la evolución de cada año." styleClass="report-subtitle" />
                         <LineChart fx:id="quarterlyChart" animated="false" createSymbols="true" legendVisible="true" prefHeight="250" VBox.vgrow="ALWAYS">
                             <xAxis><CategoryAxis label="Trimestre" /></xAxis>
-                            <yAxis><NumberAxis label="Ventas (USD)" forceZeroInRange="true" /></yAxis>
+                            <yAxis><NumberAxis label="Ventas netas (USD)" forceZeroInRange="true" /></yAxis>
                         </LineChart>
                     </VBox>
                     <VBox fx:id="categoryCard" prefHeight="320" styleClass="report-card" spacing="8">
                         <Label text="02  Ventas por categoría" styleClass="report-title" />
-                        <Label text="Participación de cada grupo de productos." styleClass="report-subtitle" />
-                        <PieChart fx:id="categoryChart" animated="false" labelsVisible="false" legendSide="RIGHT" prefHeight="250" VBox.vgrow="ALWAYS" />
+                        <Label text="Compara el ingreso y la participación de cada categoría." styleClass="report-subtitle" />
+                        <BarChart fx:id="categoryChart" animated="false" legendVisible="false" prefHeight="250" VBox.vgrow="ALWAYS">
+                            <xAxis><NumberAxis label="Ventas netas (USD)" forceZeroInRange="true" /></xAxis>
+                            <yAxis><CategoryAxis label="Categoría" /></yAxis>
+                        </BarChart>
                     </VBox>
                     <VBox fx:id="countryCard" prefHeight="320" styleClass="report-card" spacing="8">
                         <Label text="03  Ventas por país" styleClass="report-title" />
                         <Label text="Los diez países con más ingresos." styleClass="report-subtitle" />
                         <BarChart fx:id="countryChart" animated="false" legendVisible="false" prefHeight="250" VBox.vgrow="ALWAYS">
-                            <xAxis><NumberAxis label="Ventas (USD)" forceZeroInRange="true" /></xAxis>
-                            <yAxis><CategoryAxis /></yAxis>
+                            <xAxis><NumberAxis label="Ventas netas (USD)" forceZeroInRange="true" /></xAxis>
+                            <yAxis><CategoryAxis label="País" /></yAxis>
                         </BarChart>
                     </VBox>
                     <VBox fx:id="customerCard" prefHeight="320" styleClass="report-card" spacing="8">
                         <Label text="04  Ventas por cliente" styleClass="report-title" />
                         <Label text="Los diez clientes con mayor importe." styleClass="report-subtitle" />
                         <BarChart fx:id="customerChart" animated="false" legendVisible="false" prefHeight="250" VBox.vgrow="ALWAYS">
-                            <xAxis><NumberAxis label="Ventas (USD)" forceZeroInRange="true" /></xAxis>
-                            <yAxis><CategoryAxis /></yAxis>
+                            <xAxis><NumberAxis label="Ventas netas (USD)" forceZeroInRange="true" /></xAxis>
+                            <yAxis><CategoryAxis label="Cliente" /></yAxis>
                         </BarChart>
                     </VBox>
                     <VBox fx:id="employeeCard" prefHeight="320" styleClass="report-card" spacing="8">
                         <Label text="05  Ventas por empleado" styleClass="report-title" />
                         <Label text="Todos los empleados con actividad, por año." styleClass="report-subtitle" />
-                        <LineChart fx:id="employeeChart" animated="false" createSymbols="true" legendVisible="true" prefHeight="250" VBox.vgrow="ALWAYS">
-                            <xAxis><CategoryAxis label="Año" /></xAxis>
-                            <yAxis><NumberAxis label="Ventas (USD)" forceZeroInRange="true" /></yAxis>
-                        </LineChart>
+                        <StackPane fx:id="employeeChartHost" prefHeight="250" VBox.vgrow="ALWAYS">
+                            <LineChart fx:id="employeeTrendChart" animated="false" createSymbols="true" legendVisible="true" prefHeight="250">
+                                <xAxis><CategoryAxis label="Año" /></xAxis>
+                                <yAxis><NumberAxis label="Ventas netas (USD)" forceZeroInRange="true" /></yAxis>
+                            </LineChart>
+                            <BarChart fx:id="employeeYearChart" animated="false" legendVisible="false" visible="false" managed="false" prefHeight="250">
+                                <xAxis><NumberAxis label="Ventas netas (USD)" forceZeroInRange="true" /></xAxis>
+                                <yAxis><CategoryAxis label="Empleado" /></yAxis>
+                            </BarChart>
+                        </StackPane>
                     </VBox>
                     <VBox fx:id="supplierCard" prefHeight="320" styleClass="report-card" spacing="8">
                         <Label text="06  Proveedores por país" styleClass="report-title" />
                         <Label text="Cantidad registrada por país de origen." styleClass="report-subtitle" />
                         <BarChart fx:id="supplierChart" animated="false" legendVisible="false" prefHeight="250" VBox.vgrow="ALWAYS">
                             <xAxis><NumberAxis label="Proveedores" forceZeroInRange="true" /></xAxis>
-                            <yAxis><CategoryAxis /></yAxis>
+                            <yAxis><CategoryAxis label="País" /></yAxis>
                         </BarChart>
                     </VBox>
                     </FlowPane>

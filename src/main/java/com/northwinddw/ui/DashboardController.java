@@ -23,9 +23,10 @@ import javafx.geometry.Insets;
 import javafx.scene.AccessibleRole;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.Chart;
 import javafx.scene.chart.LineChart;
-import javafx.scene.chart.PieChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -46,6 +47,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -60,6 +62,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
@@ -104,10 +107,12 @@ public final class DashboardController {
     @FXML private VBox employeeCard;
     @FXML private VBox supplierCard;
     @FXML private LineChart<String, Number> quarterlyChart;
-    @FXML private PieChart categoryChart;
+    @FXML private BarChart<Number, String> categoryChart;
     @FXML private BarChart<Number, String> countryChart;
     @FXML private BarChart<Number, String> customerChart;
-    @FXML private LineChart<String, Number> employeeChart;
+    @FXML private StackPane employeeChartHost;
+    @FXML private LineChart<String, Number> employeeTrendChart;
+    @FXML private BarChart<Number, String> employeeYearChart;
     @FXML private BarChart<Number, String> supplierChart;
 
     private final DashboardDataSource repository;
@@ -129,6 +134,7 @@ public final class DashboardController {
     private boolean settingYears;
     private DashboardReport selectedReport;
     private VBox selectedCard;
+    private Pane selectedChartParent;
     private int selectedChartIndex = -1;
     private double previousScrollPosition;
 
@@ -213,8 +219,9 @@ public final class DashboardController {
             card.setPrefHeight(layout.cardHeight());
         }
         List<Chart> charts = List.of(quarterlyChart, categoryChart, countryChart,
-                customerChart, employeeChart, supplierChart);
+                customerChart, employeeTrendChart, employeeYearChart, supplierChart);
         charts.forEach(chart -> chart.setPrefHeight(layout.chartHeight()));
+        employeeChartHost.setPrefHeight(layout.chartHeight());
     }
 
     private void configureReportCard(VBox card, DashboardReport report) {
@@ -244,9 +251,10 @@ public final class DashboardController {
         VBox card = cardFor(report);
         selectedReport = report;
         selectedCard = card;
-        selectedChartIndex = card.getChildren().indexOf(chart);
+        selectedChartParent = (Pane) chart.getParent();
+        selectedChartIndex = selectedChartParent.getChildren().indexOf(chart);
         previousScrollPosition = dashboardScroll.getVvalue();
-        card.getChildren().remove(chart);
+        selectedChartParent.getChildren().remove(chart);
         detailChartHost.getChildren().setAll(chart);
 
         updateDetailContent(report);
@@ -273,8 +281,8 @@ public final class DashboardController {
 
         Chart chart = chartFor(selectedReport);
         detailChartHost.getChildren().remove(chart);
-        int insertionIndex = Math.max(0, Math.min(selectedChartIndex, selectedCard.getChildren().size()));
-        selectedCard.getChildren().add(insertionIndex, chart);
+        int insertionIndex = Math.max(0, Math.min(selectedChartIndex, selectedChartParent.getChildren().size()));
+        selectedChartParent.getChildren().add(insertionIndex, chart);
         VBox cardToFocus = selectedCard;
         reportsGrid.setVisible(true);
         reportsGrid.setManaged(true);
@@ -284,6 +292,7 @@ public final class DashboardController {
         summaryRow.setManaged(true);
         selectedReport = null;
         selectedCard = null;
+        selectedChartParent = null;
         selectedChartIndex = -1;
         resizeReportCards(reportsGrid.getWidth());
         Platform.runLater(() -> {
@@ -293,11 +302,14 @@ public final class DashboardController {
     }
 
     private void updateDetailContent(DashboardReport report) {
+        String context = report == DashboardReport.EMPLOYEE_REVENUE && loadedYear != null
+                ? "Compara las ventas de cada empleado durante " + loadedYear + "."
+                : report.context();
         detailTitle.setText(report.title());
-        detailContext.setText(report.context());
+        detailContext.setText(context);
         detailPeriod.setText("Periodo: " + DashboardFormat.yearLabel(loadedYear));
         detailTitle.setAccessibleText(report.title());
-        detailContext.setAccessibleText(report.context());
+        detailContext.setAccessibleText(context);
         detailPeriod.setAccessibleText("Periodo seleccionado: " + DashboardFormat.yearLabel(loadedYear));
         detailPdfButton.setAccessibleText("Exportar " + report.title() + " como PDF");
         detailQrButton.setAccessibleText("Generar QR para descargar " + report.title());
@@ -318,7 +330,7 @@ public final class DashboardController {
             case CATEGORY_REVENUE -> categoryChart;
             case COUNTRY_REVENUE -> countryChart;
             case CUSTOMER_REVENUE -> customerChart;
-            case EMPLOYEE_REVENUE -> employeeChart;
+            case EMPLOYEE_REVENUE -> loadedYear == null ? employeeTrendChart : employeeYearChart;
             case SUPPLIERS_BY_COUNTRY -> supplierChart;
         };
     }
@@ -589,7 +601,7 @@ public final class DashboardController {
         renderCategories(data.categoryRevenue());
         renderCountries(data.topCountries());
         renderCustomers(data.topCustomers());
-        renderEmployees(data.employeeRevenue());
+        renderEmployees(data.employeeRevenue(), loadedYear);
         renderSuppliers(data.suppliersByCountry());
     }
 
@@ -601,28 +613,29 @@ public final class DashboardController {
                 created.setName(String.valueOf(year));
                 return created;
             });
-            XYChart.Data<String, Number> point = new XYChart.Data<>(row.quarter(), row.revenue());
-            installTooltip(point, row.quarter() + " " + row.year() + " · " + DashboardFormat.usd(row.revenue()));
+            String quarter = DashboardFormat.quarterLabel(row.quarter());
+            XYChart.Data<String, Number> point = new XYChart.Data<>(quarter, row.revenue());
+            installTooltip(point, quarter + " " + row.year() + " · " + DashboardFormat.usd(row.revenue()));
             series.getData().add(point);
         }
         quarterlyChart.getData().setAll(byYear.values());
-        quarterlyChart.setAccessibleText("Ventas por trimestre y año. Cada línea representa un año.");
+        ((CategoryAxis) quarterlyChart.getXAxis()).setCategories(
+                FXCollections.observableArrayList("T1", "T2", "T3", "T4"));
+        quarterlyChart.setAccessibleText("Ventas netas por trimestre en USD. Cada línea representa un año y los trimestres sin registros no se completan.");
     }
 
     private void renderCategories(List<CategoryRevenue> rows) {
-        List<PieChart.Data> slices = new ArrayList<>();
+        XYChart.Series<Number, String> series = new XYChart.Series<>();
+        series.setName("Ventas por categoría");
         for (CategoryRevenue row : rows) {
-            PieChart.Data slice = new PieChart.Data(row.category(), row.revenue().doubleValue());
-            slice.nodeProperty().addListener((observable, previous, node) -> {
-                if (node != null) {
-                    Tooltip.install(node, new Tooltip(row.category() + " · "
-                            + DashboardFormat.percentage(row.percentage()) + " · " + DashboardFormat.usd(row.revenue())));
-                }
-            });
-            slices.add(slice);
+            XYChart.Data<Number, String> point = new XYChart.Data<>(row.revenue(), row.category());
+            installTooltip(point, row.category() + " · " + DashboardFormat.percentage(row.percentage())
+                    + " · " + DashboardFormat.usd(row.revenue()));
+            series.getData().add(point);
         }
-        categoryChart.setData(FXCollections.observableArrayList(slices));
-        categoryChart.setAccessibleText("Participación de ventas por categoría de producto.");
+        categoryChart.getData().setAll(series);
+        setCategories(categoryChart, rows.stream().map(CategoryRevenue::category).toList());
+        categoryChart.setAccessibleText("Ventas netas por categoría de producto en USD. Barras ordenadas de mayor a menor; el tooltip incluye la participación porcentual.");
     }
 
     private void renderCountries(List<CountryRevenue> rows) {
@@ -634,6 +647,7 @@ public final class DashboardController {
             series.getData().add(point);
         }
         countryChart.getData().setAll(series);
+        setCategories(countryChart, rows.stream().map(CountryRevenue::country).toList());
         countryChart.setAccessibleText("Los diez países con mayor venta, ordenados por ingresos.");
     }
 
@@ -646,12 +660,16 @@ public final class DashboardController {
             series.getData().add(point);
         }
         customerChart.getData().setAll(series);
+        setCategories(customerChart, rows.stream().map(CustomerRevenue::customer).toList());
         customerChart.setAccessibleText("Los diez clientes con mayor venta, ordenados por ingresos.");
     }
 
-    private void renderEmployees(List<EmployeeRevenue> rows) {
+    private void renderEmployees(List<EmployeeRevenue> rows, Integer selectedYear) {
         Map<String, XYChart.Series<String, Number>> byEmployee = new TreeMap<>();
-        for (EmployeeRevenue row : rows) {
+        List<EmployeeRevenue> orderedRows = rows.stream()
+                .sorted(Comparator.comparingInt(EmployeeRevenue::year).thenComparing(EmployeeRevenue::employee))
+                .toList();
+        for (EmployeeRevenue row : orderedRows) {
             XYChart.Series<String, Number> series = byEmployee.computeIfAbsent(row.employee(), employee -> {
                 XYChart.Series<String, Number> created = new XYChart.Series<>();
                 created.setName(employee);
@@ -661,8 +679,32 @@ public final class DashboardController {
             installTooltip(point, row.employee() + " · " + row.year() + " · " + DashboardFormat.usd(row.revenue()));
             series.getData().add(point);
         }
-        employeeChart.getData().setAll(byEmployee.values());
-        employeeChart.setAccessibleText("Ventas anuales de todos los empleados con datos.");
+        employeeTrendChart.getData().setAll(byEmployee.values());
+
+        XYChart.Series<Number, String> comparison = new XYChart.Series<>();
+        comparison.setName(selectedYear == null ? "Ventas" : "Ventas " + selectedYear);
+        orderedRows.stream()
+                .filter(row -> selectedYear != null && row.year() == selectedYear)
+                .sorted(Comparator.comparing(EmployeeRevenue::revenue).reversed()
+                        .thenComparing(EmployeeRevenue::employee))
+                .forEach(row -> {
+                    XYChart.Data<Number, String> point = new XYChart.Data<>(row.revenue(), row.employee());
+                    installTooltip(point, row.employee() + " · " + row.year() + " · "
+                            + DashboardFormat.usd(row.revenue()));
+                    comparison.getData().add(point);
+                });
+        employeeYearChart.getData().setAll(comparison);
+        setCategories(employeeYearChart,
+                comparison.getData().stream().map(XYChart.Data::getYValue).toList());
+
+        boolean showTrend = selectedYear == null;
+        employeeTrendChart.setVisible(showTrend);
+        employeeTrendChart.setManaged(showTrend);
+        employeeYearChart.setVisible(!showTrend);
+        employeeYearChart.setManaged(!showTrend);
+        employeeTrendChart.setAccessibleText("Ventas anuales por empleado en USD. Cada línea representa a una persona.");
+        employeeYearChart.setAccessibleText("Comparación de ventas por empleado para " + selectedYear
+                + " en USD, ordenada de mayor a menor.");
     }
 
     private void renderSuppliers(List<SuppliersByCountry> rows) {
@@ -674,6 +716,14 @@ public final class DashboardController {
             series.getData().add(point);
         }
         supplierChart.getData().setAll(series);
+        setCategories(supplierChart, rows.stream().map(SuppliersByCountry::country).toList());
+        long maxCount = rows.stream().mapToLong(SuppliersByCountry::supplierCount).max().orElse(0);
+        double countTick = Math.max(1, Math.ceil(maxCount / 5.0));
+        NumberAxis countAxis = (NumberAxis) supplierChart.getXAxis();
+        countAxis.setAutoRanging(false);
+        countAxis.setLowerBound(0);
+        countAxis.setTickUnit(countTick);
+        countAxis.setUpperBound(Math.max(countTick, (Math.floor(maxCount / countTick) + 1) * countTick));
         supplierChart.setAccessibleText("Cantidad de proveedores registrados por país.");
     }
 
@@ -773,8 +823,23 @@ public final class DashboardController {
         categoryChart.getData().clear();
         countryChart.getData().clear();
         customerChart.getData().clear();
-        employeeChart.getData().clear();
+        employeeTrendChart.getData().clear();
+        employeeYearChart.getData().clear();
+        clearCategories(categoryChart);
+        clearCategories(countryChart);
+        clearCategories(customerChart);
+        clearCategories(employeeYearChart);
+        clearCategories(supplierChart);
         supplierChart.getData().clear();
+    }
+
+    private static void setCategories(Chart chart, List<String> categories) {
+        ((CategoryAxis) ((javafx.scene.chart.XYChart<?, ?>) chart).getYAxis())
+                .setCategories(FXCollections.observableArrayList(categories));
+    }
+
+    private static void clearCategories(Chart chart) {
+        ((CategoryAxis) ((javafx.scene.chart.XYChart<?, ?>) chart).getYAxis()).getCategories().clear();
     }
 
     private static void installTooltip(XYChart.Data<?, ?> point, String text) {

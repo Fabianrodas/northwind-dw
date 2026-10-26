@@ -16,8 +16,12 @@ import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.AccessibleRole;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.Chart;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -46,6 +50,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.prefs.Preferences;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -84,15 +89,20 @@ class DashboardDetailViewTest {
                     public void handle(long now) {
                         if (status.getText().startsWith("Datos actualizados")) {
                             stop();
-                            List<VBox> cards = List.of("quarterlyCard", "categoryCard", "countryCard",
-                                            "customerCard", "employeeCard", "supplierCard").stream()
-                                    .map(id -> (VBox) loader.getNamespace().get(id))
-                                    .toList();
-                            verifyResponsiveWidths(stage, root,
-                                    (FlowPane) loader.getNamespace().get("reportsGrid"), cards,
-                                    new double[]{1480, 1000, 800}, 0, () -> startDetailFlow(
-                                            loader, root, stage, cards, controller, preferences, failure, complete),
-                                    exception -> finish(stage, controller, failure, complete, exception));
+                            try {
+                                assertChartMappings(loader);
+                                List<VBox> cards = List.of("quarterlyCard", "categoryCard", "countryCard",
+                                                "customerCard", "employeeCard", "supplierCard").stream()
+                                        .map(id -> (VBox) loader.getNamespace().get(id))
+                                        .toList();
+                                verifyResponsiveWidths(stage, root,
+                                        (FlowPane) loader.getNamespace().get("reportsGrid"), cards,
+                                        new double[]{1480, 1000, 800}, 0, () -> startDetailFlow(
+                                                loader, root, stage, cards, controller, preferences, failure, complete),
+                                        exception -> finish(stage, controller, failure, complete, exception));
+                            } catch (Throwable exception) {
+                                finish(stage, controller, failure, complete, exception);
+                            }
                         }
                     }
                 }.start();
@@ -116,10 +126,16 @@ class DashboardDetailViewTest {
 
     private static DashboardData sampleData(Integer selectedYear) {
         List<QuarterlySales> quarterlySales = List.of(
-                new QuarterlySales(1996, "T1", new BigDecimal("100.00")),
-                new QuarterlySales(1997, "T1", new BigDecimal("120.00")),
-                new QuarterlySales(1997, "T2", new BigDecimal("140.00")),
-                new QuarterlySales(1998, "T1", new BigDecimal("160.00"))).stream()
+                new QuarterlySales(1996, "Third", new BigDecimal("100.00")),
+                new QuarterlySales(1997, "First", new BigDecimal("120.00")),
+                new QuarterlySales(1997, "Second", new BigDecimal("140.00")),
+                new QuarterlySales(1998, "Fourth", new BigDecimal("160.00"))).stream()
+                .filter(row -> selectedYear == null || row.year() == selectedYear)
+                .toList();
+        List<EmployeeRevenue> employeeRevenue = List.of(
+                new EmployeeRevenue(1996, "Nancy Davolio", new BigDecimal("110.00")),
+                new EmployeeRevenue(1997, "Nancy Davolio", new BigDecimal("255.00")),
+                new EmployeeRevenue(1998, "Nancy Davolio", new BigDecimal("180.00"))).stream()
                 .filter(row -> selectedYear == null || row.year() == selectedYear)
                 .toList();
         return new DashboardData(
@@ -128,7 +144,7 @@ class DashboardDetailViewTest {
                 List.of(new CategoryRevenue("Bebidas", new BigDecimal("320000"), new BigDecimal("25.3"))),
                 List.of(new CountryRevenue("Estados Unidos", new BigDecimal("245000"))),
                 List.of(new CustomerRevenue("Alfreds Futterkiste", new BigDecimal("68000"))),
-                List.of(new EmployeeRevenue(1997, "Nancy Davolio", new BigDecimal("255000"))),
+                employeeRevenue,
                 List.of(new SuppliersByCountry("Estados Unidos", 4)),
                 List.of(1996, 1997, 1998));
     }
@@ -151,6 +167,10 @@ class DashboardDetailViewTest {
             assertNotNull(loader.getNamespace().get("detailPdfButton"));
             assertNotNull(loader.getNamespace().get("detailQrButton"));
             assertTrue(root.getStyleClass().contains(DashboardTheme.LIGHT.styleClass()));
+            assertTrue(((LineChart<?, ?>) loader.getNamespace().get("employeeTrendChart")).isVisible(),
+                    "All years should show the employee time trend.");
+            assertFalse(((BarChart<?, ?>) loader.getNamespace().get("employeeYearChart")).isVisible(),
+                    "The one-year employee comparison should be hidden for all years.");
 
             ScrollPaneAccess scroll = new ScrollPaneAccess(loader);
             scroll.pane().setVvalue(0.42);
@@ -209,6 +229,13 @@ class DashboardDetailViewTest {
                         assertEquals(1, chart.getData().size());
                         assertEquals("1997", chart.getData().getFirst().getName());
                         assertEquals(2, chart.getData().getFirst().getData().size());
+                        assertEquals(List.of("T1", "T2"), chart.getData().getFirst().getData().stream()
+                                .map(XYChart.Data::getXValue).toList());
+                        assertEquals(1, ((LineChart<?, ?>) loader.getNamespace().get("employeeTrendChart"))
+                                .getData().size());
+                        assertFalse(((LineChart<?, ?>) loader.getNamespace().get("employeeTrendChart")).isVisible());
+                        assertTrue(((BarChart<?, ?>) loader.getNamespace().get("employeeYearChart")).isVisible(),
+                                "A selected year should show employee rankings as bars.");
                         ComboBox<String> yearFilter = (ComboBox<String>) loader.getNamespace().get("yearFilter");
                         yearFilter.setValue("1998");
                         awaitFailedYearRefresh(loader, root, stage, cards, controller, preferences,
@@ -244,6 +271,8 @@ class DashboardDetailViewTest {
                         LineChart<String, Number> chart = (LineChart<String, Number>)
                                 loader.getNamespace().get("quarterlyChart");
                         assertEquals("1997", chart.getData().getFirst().getName());
+                        assertTrue(((BarChart<?, ?>) loader.getNamespace().get("employeeYearChart")).isVisible(),
+                                "A failed refresh must preserve the chart for the visible year.");
                         Button backButton = (Button) loader.getNamespace().get("backToGridButton");
                         backButton.fire();
                         assertTrue(((FlowPane) loader.getNamespace().get("reportsGrid")).isVisible());
@@ -338,7 +367,9 @@ class DashboardDetailViewTest {
             ((Button) loader.getNamespace().get("backToGridButton")).fire();
             assertTrue(((FlowPane) loader.getNamespace().get("reportsGrid")).isVisible());
             assertTrue(((HBox) loader.getNamespace().get("summaryRow")).isVisible());
-            assertEquals(cardFor(index, cards), chartFor(loader, DashboardReport.values()[index]).getParent());
+            Object expectedParent = index == 4
+                    ? loader.getNamespace().get("employeeChartHost") : cardFor(index, cards);
+            assertEquals(expectedParent, chartFor(loader, DashboardReport.values()[index]).getParent());
             PauseTransition focusRestore = new PauseTransition(Duration.millis(100));
             focusRestore.setOnFinished(event -> {
                 try {
@@ -390,9 +421,54 @@ class DashboardDetailViewTest {
             case CATEGORY_REVENUE -> (Chart) loader.getNamespace().get("categoryChart");
             case COUNTRY_REVENUE -> (Chart) loader.getNamespace().get("countryChart");
             case CUSTOMER_REVENUE -> (Chart) loader.getNamespace().get("customerChart");
-            case EMPLOYEE_REVENUE -> (Chart) loader.getNamespace().get("employeeChart");
+            case EMPLOYEE_REVENUE -> ((ComboBox<?>) loader.getNamespace().get("yearFilter")).getValue()
+                    .equals("Todos los años")
+                    ? (Chart) loader.getNamespace().get("employeeTrendChart")
+                    : (Chart) loader.getNamespace().get("employeeYearChart");
             case SUPPLIERS_BY_COUNTRY -> (Chart) loader.getNamespace().get("supplierChart");
         };
+    }
+
+    private static void assertChartMappings(FXMLLoader loader) {
+        assertTrue(loader.getNamespace().get("categoryChart") instanceof BarChart<?, ?>,
+                "Nominal product categories should use bars for precise comparisons.");
+
+        LineChart<String, Number> quarters = (LineChart<String, Number>) loader.getNamespace().get("quarterlyChart");
+        assertEquals("Trimestre", ((CategoryAxis) quarters.getXAxis()).getLabel());
+        assertEquals("Ventas netas (USD)", ((NumberAxis) quarters.getYAxis()).getLabel());
+        assertEquals(List.of("1996", "1997", "1998"), quarters.getData().stream()
+                .map(XYChart.Series::getName).toList());
+        assertEquals(1, quarters.getData().getFirst().getData().size(),
+                "Missing quarters must not be filled with zero values.");
+        assertEquals(List.of("T1", "T2"), quarters.getData().get(1).getData().stream()
+                .map(XYChart.Data::getXValue).toList());
+
+        assertEquals("Ventas netas (USD)", ((NumberAxis) ((BarChart<?, ?>) loader.getNamespace()
+                .get("categoryChart")).getXAxis()).getLabel());
+        assertTrue(((NumberAxis) ((BarChart<?, ?>) loader.getNamespace()
+                .get("categoryChart")).getXAxis()).isForceZeroInRange(),
+                "Comparative bar charts should include a meaningful zero baseline.");
+        assertEquals("Categoría", ((CategoryAxis) ((BarChart<?, ?>) loader.getNamespace()
+                .get("categoryChart")).getYAxis()).getLabel());
+        assertEquals("País", ((CategoryAxis) ((BarChart<?, ?>) loader.getNamespace()
+                .get("countryChart")).getYAxis()).getLabel());
+        assertEquals("Cliente", ((CategoryAxis) ((BarChart<?, ?>) loader.getNamespace()
+                .get("customerChart")).getYAxis()).getLabel());
+        assertEquals("Empleado", ((CategoryAxis) ((BarChart<?, ?>) loader.getNamespace()
+                .get("employeeYearChart")).getYAxis()).getLabel());
+        assertEquals("País", ((CategoryAxis) ((BarChart<?, ?>) loader.getNamespace()
+                .get("supplierChart")).getYAxis()).getLabel());
+        NumberAxis supplierAxis = (NumberAxis) ((BarChart<?, ?>) loader.getNamespace()
+                .get("supplierChart")).getXAxis();
+        assertFalse(supplierAxis.isAutoRanging(), "Provider counts should use fixed integer ticks.");
+        assertEquals(0.0, supplierAxis.getLowerBound());
+        assertEquals(0.0, supplierAxis.getTickUnit() % 1.0,
+                "A count axis should advance in whole providers.");
+
+        LineChart<String, Number> employeeTrend =
+                (LineChart<String, Number>) loader.getNamespace().get("employeeTrendChart");
+        assertEquals(List.of("1996", "1997", "1998"), employeeTrend.getData().getFirst().getData().stream()
+                .map(XYChart.Data::getXValue).toList());
     }
 
     private static VBox cardFor(int index, List<VBox> cards) {
