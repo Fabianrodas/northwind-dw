@@ -1,6 +1,9 @@
 package com.northwinddw.ui;
 
 import com.northwinddw.Main;
+import com.northwinddw.config.DatabaseConfig;
+import com.northwinddw.data.AnalyticsRepository;
+import com.northwinddw.data.ConnectionFactory;
 import com.northwinddw.data.DashboardDataSource;
 import com.northwinddw.service.DashboardExporter;
 import com.northwinddw.model.DashboardData;
@@ -40,9 +43,24 @@ import java.util.UUID;
 import java.util.prefs.Preferences;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class DashboardScreenshotTest {
+    @Test
+    void selectsFixtureOrDatabaseSourceExplicitly() throws Exception {
+        DashboardData fixture = sampleData();
+        DashboardDataSource fixtureSource = screenshotDataSource("fixture", fixture, null);
+        assertTrue(fixtureSource.loadDashboard(null).summary().totalRevenue()
+                .compareTo(fixture.summary().totalRevenue()) == 0);
+
+        DatabaseConfig config = new DatabaseConfig("127.0.0.1", 5432, "northwind_pentaho", "postgres", "test-only");
+        assertInstanceOf(AnalyticsRepository.class, screenshotDataSource("database", fixture, config));
+        assertThrows(IllegalArgumentException.class,
+                () -> screenshotDataSource("unknown", fixture, config));
+    }
+
     @Test
     void capturesLightAndDarkThemesAndConnectionError() throws Exception {
         String screenshotDirectory = System.getenv("NORTHWIND_SCREENSHOT_DIR");
@@ -55,7 +73,13 @@ class DashboardScreenshotTest {
         CountDownLatch complete = new CountDownLatch(1);
         AtomicReference<Throwable> failure = new AtomicReference<>();
         DashboardData sample = sampleData();
-        Platform.startup(() -> openWindow(year -> sample, null, DashboardTheme.LIGHT,
+        String dataSourceMode = System.getenv("NORTHWIND_SCREENSHOT_DATA_SOURCE");
+        if (dataSourceMode == null || dataSourceMode.isBlank()) {
+            dataSourceMode = "fixture";
+        }
+        DashboardDataSource source = screenshotDataSource(dataSourceMode,
+                sample, "database".equals(dataSourceMode) ? DatabaseConfig.load() : null);
+        Platform.startup(() -> openWindow(source, null, DashboardTheme.LIGHT,
                 outputDirectory.resolve("dashboard.png"), outputDirectory.resolve("dashboard-dark.png"),
                 outputDirectory.resolve("dashboard-detail.png"), outputDirectory.resolve("dashboard-detail-dark.png"), () ->
                 openWindow(null, "Prueba sin conexión", DashboardTheme.DARK,
@@ -78,6 +102,20 @@ class DashboardScreenshotTest {
             preferences.removeNode();
             Preferences.userRoot().flush();
         }
+    }
+
+    private static DashboardDataSource screenshotDataSource(String mode, DashboardData fixture,
+                                                            DatabaseConfig databaseConfig) {
+        return switch (mode) {
+            case "fixture" -> year -> fixture;
+            case "database" -> {
+                if (databaseConfig == null) {
+                    throw new IllegalArgumentException("Database screenshot mode requires database settings.");
+                }
+                yield new AnalyticsRepository(ConnectionFactory.from(databaseConfig));
+            }
+            default -> throw new IllegalArgumentException("Use 'fixture' or 'database' screenshot data mode.");
+        };
     }
 
     private static void openWindow(DashboardDataSource source, String configurationError,

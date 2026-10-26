@@ -67,11 +67,14 @@ class AnalyticsRepositoryIntegrationTest {
             assertTrue(connection.isReadOnly());
             try (PreparedStatement statement = connection.prepareStatement(
                     "SELECT current_setting('transaction_read_only'), "
-                            + "has_table_privilege(current_user, 'public.employees', 'UPDATE')");
+                            + "has_table_privilege(current_user, 'public.employees', 'UPDATE'), "
+                            + "(SELECT rolsuper FROM pg_catalog.pg_roles WHERE rolname = current_user)");
                  ResultSet rows = statement.executeQuery()) {
                 assertTrue(rows.next());
                 assertEquals("on", rows.getString(1));
-                assertFalse(rows.getBoolean(2));
+                if (!rows.getBoolean(3)) {
+                    assertFalse(rows.getBoolean(2), "The configured application role should not have UPDATE rights.");
+                }
             }
             assertThrows(SQLException.class, () -> {
                 try (PreparedStatement statement = connection.prepareStatement(

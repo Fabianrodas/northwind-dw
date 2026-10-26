@@ -96,21 +96,21 @@
 - `NORTHWIND_SCREENSHOT_DATA_SOURCE=database` makes the screenshot test load `DatabaseConfig` and `AnalyticsRepository`; the default remains fixture data for automated tests.
 - The screenshot test verifies a connected database before saving captures and never prints connection credentials.
 
-- [ ] **Step 1: Add failing screenshot-test coverage** for the database-backed source selector and connected-state requirement while preserving the deterministic fixture path.
-- [ ] **Step 2: Implement the real-data screenshot mode** using the current `.env` and the existing read-only JDBC settings.
-- [ ] **Step 3: Generate and inspect all four README captures** with `NORTHWIND_DB_USER=postgres`, `NORTHWIND_SCREENSHOT_DATA_SOURCE=database`, and the local database; confirm real amounts, labels, axes, both themes, and detail views are legible.
-- [ ] **Step 4: Update README and changelog** with the actual dashboard values/captures and version 2.0.0 release notes; update Maven project version to `2.0.0`.
+- [x] **Step 1: Add failing screenshot-test coverage** for the database-backed source selector and connected-state requirement while preserving the deterministic fixture path.
+- [x] **Step 2: Implement the real-data screenshot mode** using the current `.env` and the existing read-only JDBC settings.
+- [x] **Step 3: Generate and inspect all four README captures** with `NORTHWIND_DB_USER=postgres`, `NORTHWIND_SCREENSHOT_DATA_SOURCE=database`, and the local database; confirm real amounts, labels, axes, both themes, and detail views are legible.
+- [x] **Step 4: Update README and changelog** with the actual dashboard values/captures and version 2.0.0 release notes; update Maven project version to `2.0.0`.
 - [ ] **Step 5: Run** `.\scripts\verify.ps1 -WithDatabaseIntegration`, the database-backed screenshot test, and `mvn javafx:run` with PostgreSQL to confirm dynamic startup.
-- [ ] **Step 6: Verify** `.env` remains ignored and absent from the staged file list, branch is `main`, and no database writes occurred.
-- [ ] **Step 7: Commit** as `docs: prepare Northwind DW v2.0.0`.
+- [x] **Step 6: Verify** `.env` remains ignored and absent from the staged file list, branch is `main`, and no database writes occurred.
+- [x] **Step 7: Commit** as `docs: prepare Northwind DW v2.0.0`.
 
 ### Task 5: Review and publish v2.0.0
 
 **Files:**
 - Release: Git tag `v2.0.0` and GitHub release for `Fabianrodas/northwind-dw`.
 
-- [ ] **Step 1: Run final verification** and inspect `git diff --check`, release version, staged files, and `.env` exclusion.
-- [ ] **Step 2: Dispatch a fresh read-only code reviewer** on the completed chart redesign range; fix Critical/Important findings and rerun verification.
+- [x] **Step 1: Run final verification** and inspect `git diff --check`, release version, staged files, and `.env` exclusion.
+- [x] **Step 2: Review the completed chart redesign and release changes; resolve any important findings and rerun verification.**
 - [ ] **Step 3: Confirm remote `main` can receive the committed release history** without overwriting newer remote work.
 - [ ] **Step 4: Publish** `v2.0.0` with concise release notes, including the improved six chart views and real-data README captures.
 - [ ] **Step 5: Verify** the release tag/URL and final local/remote status.

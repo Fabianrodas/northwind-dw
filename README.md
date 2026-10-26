@@ -14,17 +14,17 @@ Northwind DW reúne los datos comerciales de ejemplo de Northwind en una ventana
 
 Al abrirse, la aplicación usa el tema oscuro, con la paleta del proyecto original. Puedes cambiar a modo claro desde la esquina superior derecha; tu elección se conserva para la próxima vez. Las tarjetas se acomodan en tres, dos o una columna según el ancho de la ventana.
 
-Las siguientes imágenes muestran ambos temas con valores de ejemplo:
+Las siguientes capturas se generaron desde la base Northwind de PostgreSQL instalada en el equipo. En esa base, el tablero resume **$1,265,792.94 en ventas**, **89 clientes con compras** y **29 proveedores con ventas** entre 1996 y 1998. Cada gráfica compara una medida con su categoría o periodo: ventas trimestrales, participación por categoría, países y clientes con más ingresos, actividad anual de empleados y proveedores por país.
 
-![Tablero de ventas en modo oscuro](docs/screenshots/dashboard-dark.png)
+![Tablero con datos reales en modo oscuro](docs/screenshots/dashboard-dark.png)
 
-![Tablero de ventas en modo claro](docs/screenshots/dashboard.png)
+![Tablero con datos reales en modo claro](docs/screenshots/dashboard.png)
 
 Al elegir una tarjeta, puedes ver ese análisis a mayor tamaño. El detalle conserva los filtros y el tema, y permite regresar a la cuadrícula:
 
-![Detalle de un gráfico en modo claro](docs/screenshots/dashboard-detail.png)
+![Detalle de un gráfico con datos reales en modo claro](docs/screenshots/dashboard-detail.png)
 
-![Detalle de un gráfico en modo oscuro](docs/screenshots/dashboard-detail-dark.png)
+![Detalle de un gráfico con datos reales en modo oscuro](docs/screenshots/dashboard-detail-dark.png)
 
 Si la aplicación no encuentra PostgreSQL, informa qué revisar y mantiene la ventana abierta:
 
