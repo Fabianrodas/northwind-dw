@@ -4,6 +4,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
+$savedTestEnvironment = @{}
 Push-Location $projectRoot
 
 try {
@@ -22,8 +23,50 @@ try {
     if ($runAction.Count -ne 1 -or @($runAction[0].goals.goal) -notcontains "javafx:run") {
         throw "La acción Run de NetBeans debe usar javafx:run para iniciar la aplicación JavaFX."
     }
-    if ($WithDatabaseIntegration -and [string]::IsNullOrWhiteSpace($env:NORTHWIND_TEST_DB_PORT)) {
-        throw "Define NORTHWIND_TEST_DB_PORT para habilitar la consulta opcional a PostgreSQL."
+    if ($WithDatabaseIntegration) {
+        $localDatabaseSettings = @{}
+        if (Test-Path -LiteralPath ".env") {
+            foreach ($sourceLine in Get-Content -LiteralPath ".env") {
+                $line = $sourceLine.Trim()
+                if ([string]::IsNullOrWhiteSpace($line) -or $line.StartsWith("#")) {
+                    continue
+                }
+                if ($line.StartsWith("export ")) {
+                    $line = $line.Substring(7).Trim()
+                }
+                $separator = $line.IndexOf("=")
+                if ($separator -le 0) {
+                    continue
+                }
+
+                $key = $line.Substring(0, $separator).Trim()
+                $value = $line.Substring($separator + 1).Trim()
+                if (($value.StartsWith('"') -and $value.EndsWith('"')) -or
+                    ($value.StartsWith("'") -and $value.EndsWith("'"))) {
+                    $value = $value.Substring(1, $value.Length - 2)
+                } else {
+                    $inlineComment = $value.IndexOf(" #")
+                    if ($inlineComment -ge 0) {
+                        $value = $value.Substring(0, $inlineComment).Trim()
+                    }
+                }
+                $localDatabaseSettings[$key] = $value
+            }
+        }
+
+        foreach ($suffix in @("HOST", "PORT", "NAME", "USER", "PASSWORD")) {
+            $testVariable = "NORTHWIND_TEST_DB_$suffix"
+            $applicationVariable = "NORTHWIND_DB_$suffix"
+            $existingValue = [Environment]::GetEnvironmentVariable($testVariable, "Process")
+            $savedTestEnvironment[$testVariable] = $existingValue
+            if ($null -eq $existingValue -and $localDatabaseSettings.ContainsKey($applicationVariable)) {
+                [Environment]::SetEnvironmentVariable($testVariable, $localDatabaseSettings[$applicationVariable], "Process")
+            }
+        }
+
+        if ([string]::IsNullOrWhiteSpace($env:NORTHWIND_TEST_DB_PORT)) {
+            throw "Configura la base local en .env o define NORTHWIND_TEST_DB_PORT para habilitar la integración con PostgreSQL."
+        }
     }
 
     $gitSafetyOption = "safe.directory=$projectRoot"
@@ -108,4 +151,7 @@ try {
 }
 finally {
     Pop-Location
+    foreach ($testVariable in $savedTestEnvironment.Keys) {
+        [Environment]::SetEnvironmentVariable($testVariable, $savedTestEnvironment[$testVariable], "Process")
+    }
 }

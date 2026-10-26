@@ -71,3 +71,11 @@ Para ejecutar las comprobaciones automáticas en Windows PowerShell:
 Estas comprobaciones revisan el código, ejecutan las pruebas y preparan la aplicación. La prueba adicional de PostgreSQL es opcional: necesita que la base de prueba ya esté cargada y que indiques `NORTHWIND_TEST_DB_PORT` antes de ejecutar el script con `-WithDatabaseIntegration`. La prueba consulta datos, pero no los modifica.
 
 La revisión funcional del proyecto anterior y los cambios realizados se describen en [`docs/engineering-review.md`](docs/engineering-review.md).
+
+Si ya configuraste la base y el usuario de solo lectura, puedes incluir una consulta real a PostgreSQL en la revisión:
+
+```powershell
+.\scripts\verify.ps1 -WithDatabaseIntegration
+```
+
+Esta opción toma los datos de conexión de `.env` sin mostrarlos. También puedes definir las variables `NORTHWIND_TEST_DB_*` para indicar otra base de prueba.
