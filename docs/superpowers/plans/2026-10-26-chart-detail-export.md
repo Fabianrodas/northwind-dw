@@ -76,10 +76,10 @@
 - Existing `exportPdf(DashboardData, Path)` remains the full-dashboard export used from the home toolbar.
 - `DashboardController` captures the JavaFX chart on the UI thread, converts that snapshot to `BufferedImage`, and then runs PDF writing in the existing background executor.
 
-- [ ] **Step 1: Add a failing PDF test** that passes a known chart image and one report content object, then checks the PDF text, page resources, one embedded image, and absence of the other five report headings.
-- [ ] **Step 2: Run the focused PDF test** with Maven; confirm the report-specific exporter method is missing.
-- [ ] **Step 3: Implement `exportReportPdf`** with PDFBox and a single-page chart image scaled inside the printable area, followed by the matching report rows with overflow pagination.
-- [ ] **Step 4: Run PDF exporter tests** and confirm the selected report, image, values, pagination, and unwritable-path error behavior pass.
+- [x] **Step 1: Add a failing PDF test** that passes a known chart image and one report content object, then checks the PDF text, page resources, one embedded image, and absence of the other five report headings.
+- [x] **Step 2: Run the focused PDF test** with Maven; confirm the report-specific exporter method is missing.
+- [x] **Step 3: Implement `exportReportPdf`** with PDFBox and a single-page chart image scaled inside the printable area, followed by the matching report rows with overflow pagination.
+- [x] **Step 4: Run PDF exporter tests** and confirm the selected report, image, values, pagination, and unwritable-path error behavior pass.
 - [ ] **Step 5: Commit** as `feat: export individual report charts to PDF`.
 
 ### Task 3: Add the detail view and persistent dashboard controls

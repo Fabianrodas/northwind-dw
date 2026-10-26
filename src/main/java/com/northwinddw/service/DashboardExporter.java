@@ -8,10 +8,14 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import com.northwinddw.model.DashboardData;
+import com.northwinddw.model.DashboardReportContent;
 import com.northwinddw.model.RevenueSummary;
 import com.northwinddw.ui.DashboardFormat;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -21,11 +25,35 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public final class DashboardExporter {
     private static final String SQL_RESOURCE = "/db/northwind_dw.sql";
     private static final PDFont REGULAR_FONT = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
     private static final PDFont BOLD_FONT = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
+
+    public void exportReportPdf(DashboardReportContent content, BufferedImage chartImage, Path destination)
+            throws IOException {
+        Objects.requireNonNull(content, "content");
+        Objects.requireNonNull(chartImage, "chartImage");
+        Objects.requireNonNull(destination, "destination");
+        createParentDirectory(destination);
+        try (PDDocument document = new PDDocument()) {
+            PDDocumentInformation information = document.getDocumentInformation();
+            information.setTitle("Northwind DW | " + content.title());
+            information.setAuthor("Northwind DW");
+            try (PdfReport report = new PdfReport(document)) {
+                report.add(content.title(), BOLD_FONT, 20);
+                report.add(content.context(), REGULAR_FONT, 10);
+                report.add("Periodo: " + content.period(), REGULAR_FONT, 10);
+                report.addBlank();
+                report.addImage(chartImage);
+                report.addBlank();
+                addTable(report, "Datos del gráfico", content.headers(), content.rows());
+            }
+            document.save(destination.toFile());
+        }
+    }
 
     public void exportPdf(DashboardData data, Path destination) throws IOException {
         createParentDirectory(destination);
@@ -153,6 +181,21 @@ public final class DashboardExporter {
 
         private void addBlank() {
             cursorY -= LINE_GAP + 2;
+        }
+
+        private void addImage(BufferedImage bufferedImage) throws IOException {
+            float maximumWidth = PDRectangle.A4.getWidth() - (2 * MARGIN);
+            float maximumHeight = 340;
+            float scale = Math.min(maximumWidth / bufferedImage.getWidth(), maximumHeight / bufferedImage.getHeight());
+            float imageWidth = bufferedImage.getWidth() * scale;
+            float imageHeight = bufferedImage.getHeight() * scale;
+            if (cursorY - imageHeight < MARGIN + 10) {
+                nextPage();
+            }
+
+            PDImageXObject image = LosslessFactory.createFromImage(document, bufferedImage);
+            content.drawImage(image, MARGIN, cursorY - imageHeight, imageWidth, imageHeight);
+            cursorY -= imageHeight + LINE_GAP;
         }
 
         private List<String> wrap(String text, PDFont font, float fontSize) throws IOException {
