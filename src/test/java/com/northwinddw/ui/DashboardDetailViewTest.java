@@ -36,6 +36,7 @@ import javafx.util.Duration;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -58,7 +59,12 @@ class DashboardDetailViewTest {
             try {
                 FXMLLoader loader = new FXMLLoader(Main.class.getResource("/fxml/dashboard.fxml"));
                 loader.setControllerFactory(type -> new DashboardController(
-                        DashboardDetailViewTest::sampleData, new DashboardExporter(), null,
+                        year -> {
+                            if (Integer.valueOf(1998).equals(year)) {
+                                throw new SQLException("Simulated refresh failure.");
+                            }
+                            return sampleData(year);
+                        }, new DashboardExporter(), null,
                         DashboardTheme.LIGHT, preferences));
                 Parent root = loader.load();
                 Scene scene = new Scene(root, 1200, 900);
@@ -152,14 +158,23 @@ class DashboardDetailViewTest {
             assertEquals("Periodo: Todos los años", period.getText());
             assertEquals(chartHost, chartFor(loader, DashboardReport.QUARTERLY_SALES).getParent());
             assertEquals(AccessibleRole.BUTTON, quarterlyCard.getAccessibleRole());
-
-            themeButton.fire();
-            assertTrue(root.getStyleClass().contains(DashboardTheme.DARK.styleClass()));
-            assertTrue(themeButton.isVisible());
-            assertTrue(yearFilter.isVisible());
-            yearFilter.setValue("1997");
-            awaitYearRefresh(loader, root, stage, cards, controller, preferences, previousPosition,
-                    failure, complete);
+            PauseTransition focusCheck = new PauseTransition(Duration.millis(120));
+            focusCheck.setOnFinished(event -> {
+                try {
+                    assertEquals(backButton, stage.getScene().getFocusOwner(),
+                            "Opening a report should move keyboard focus to the Back button.");
+                    themeButton.fire();
+                    assertTrue(root.getStyleClass().contains(DashboardTheme.DARK.styleClass()));
+                    assertTrue(themeButton.isVisible());
+                    assertTrue(yearFilter.isVisible());
+                    yearFilter.setValue("1997");
+                    awaitYearRefresh(loader, root, stage, cards, controller, preferences, previousPosition,
+                            failure, complete);
+                } catch (Throwable exception) {
+                    finish(stage, controller, failure, complete, exception);
+                }
+            });
+            focusCheck.play();
         } catch (Throwable exception) {
             finish(stage, controller, failure, complete, exception);
         }
@@ -188,12 +203,47 @@ class DashboardDetailViewTest {
                         assertEquals(1, chart.getData().size());
                         assertEquals("1997", chart.getData().getFirst().getName());
                         assertEquals(2, chart.getData().getFirst().getData().size());
+                        ComboBox<String> yearFilter = (ComboBox<String>) loader.getNamespace().get("yearFilter");
+                        yearFilter.setValue("1998");
+                        awaitFailedYearRefresh(loader, root, stage, cards, controller, preferences,
+                                previousPosition, failure, complete);
+                    } catch (Throwable exception) {
+                        finish(stage, controller, failure, complete, exception);
+                    }
+                }
+            }
+        }.start();
+    }
+
+    private static void awaitFailedYearRefresh(FXMLLoader loader, Parent root, Stage stage, List<VBox> cards,
+                                               DashboardController controller, Preferences preferences,
+                                               double previousPosition, AtomicReference<Throwable> failure,
+                                               CountDownLatch complete) {
+        Label status = (Label) loader.getNamespace().get("statusLabel");
+        new AnimationTimer() {
+            private long startedAt;
+
+            @Override
+            public void handle(long now) {
+                if (startedAt == 0) {
+                    startedAt = now;
+                }
+                if (status.getText().startsWith("No se pudo actualizar")) {
+                    stop();
+                    try {
+                        ComboBox<String> yearFilter = (ComboBox<String>) loader.getNamespace().get("yearFilter");
+                        assertEquals("1997", yearFilter.getValue(),
+                                "After a failed refresh, the filter should match the visible data.");
+                        assertEquals("Periodo: 1997", ((Label) loader.getNamespace().get("detailPeriod")).getText());
+                        LineChart<String, Number> chart = (LineChart<String, Number>)
+                                loader.getNamespace().get("quarterlyChart");
+                        assertEquals("1997", chart.getData().getFirst().getName());
                         Button backButton = (Button) loader.getNamespace().get("backToGridButton");
                         backButton.fire();
                         assertTrue(((FlowPane) loader.getNamespace().get("reportsGrid")).isVisible());
                         assertTrue(((HBox) loader.getNamespace().get("summaryRow")).isVisible());
                         PauseTransition focusRestore = new PauseTransition(Duration.millis(120));
-                        focusRestore.setOnFinished(event -> {
+                        focusRestore.setOnFinished(focusEvent -> {
                             try {
                                 ScrollPaneAccess scroll = new ScrollPaneAccess(loader);
                                 assertEquals(previousPosition, scroll.pane().getVvalue(), 0.05);
@@ -209,6 +259,10 @@ class DashboardDetailViewTest {
                     } catch (Throwable exception) {
                         finish(stage, controller, failure, complete, exception);
                     }
+                } else if (now - startedAt > Duration.seconds(5).toMillis() * 1_000_000) {
+                    stop();
+                    finish(stage, controller, failure, complete,
+                            new AssertionError("Timed out waiting for the simulated refresh failure."));
                 }
             }
         }.start();

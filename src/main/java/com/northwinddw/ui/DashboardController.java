@@ -117,6 +117,7 @@ public final class DashboardController {
     });
 
     private DashboardData currentData;
+    private Integer loadedYear;
     private boolean settingYears;
     private DashboardReport selectedReport;
     private VBox selectedCard;
@@ -250,7 +251,10 @@ public final class DashboardController {
         summaryRow.setManaged(false);
         dashboardScroll.setVvalue(0);
         resizeDetailChart(detailChartHost.getWidth());
-        Platform.runLater(detailChartHost::requestLayout);
+        Platform.runLater(() -> {
+            detailChartHost.requestLayout();
+            backToGridButton.requestFocus();
+        });
     }
 
     @FXML
@@ -283,10 +287,10 @@ public final class DashboardController {
     private void updateDetailContent(DashboardReport report) {
         detailTitle.setText(report.title());
         detailContext.setText(report.context());
-        detailPeriod.setText("Periodo: " + DashboardFormat.yearLabel(selectedYear()));
+        detailPeriod.setText("Periodo: " + DashboardFormat.yearLabel(loadedYear));
         detailTitle.setAccessibleText(report.title());
         detailContext.setAccessibleText(report.context());
-        detailPeriod.setAccessibleText("Periodo seleccionado: " + DashboardFormat.yearLabel(selectedYear()));
+        detailPeriod.setAccessibleText("Periodo seleccionado: " + DashboardFormat.yearLabel(loadedYear));
         detailPdfButton.setAccessibleText("Exportar " + report.title() + " como PDF");
         detailQrButton.setAccessibleText("Generar código QR de " + report.title());
     }
@@ -342,6 +346,7 @@ public final class DashboardController {
         };
         task.setOnSucceeded(event -> {
             currentData = task.getValue();
+            loadedYear = selectedYear;
             if (selectedYear == null) {
                 updateYearOptions(currentData.availableYears());
             }
@@ -368,6 +373,7 @@ public final class DashboardController {
                 detailPdfButton.setDisable(true);
                 detailQrButton.setDisable(true);
             } else {
+                restoreLoadedYearSelection();
                 statusLabel.setText("No se pudo actualizar. Se mantienen visibles los últimos datos cargados.");
             }
         });
@@ -426,7 +432,7 @@ public final class DashboardController {
         }
 
         DashboardReport reportToExport = selectedReport;
-        DashboardReportContent content = DashboardReportContent.from(reportToExport, currentData, selectedYear());
+        DashboardReportContent content = DashboardReportContent.from(reportToExport, currentData, loadedYear);
         BufferedImage chartImage;
         try {
             Chart chart = chartFor(reportToExport);
@@ -469,7 +475,7 @@ public final class DashboardController {
             return;
         }
         DashboardReport report = selectedReport;
-        DashboardReportContent content = DashboardReportContent.from(report, currentData, selectedYear());
+        DashboardReportContent content = DashboardReportContent.from(report, currentData, loadedYear);
         try {
             BitMatrix qrMatrix = qrService.encode(content.qrText(), 480);
             Dialog<ButtonType> dialog = new Dialog<>();
@@ -654,6 +660,18 @@ public final class DashboardController {
     private Integer selectedYear() {
         String selected = yearFilter.getValue();
         return selected == null || ALL_YEARS.equals(selected) ? null : Integer.valueOf(selected);
+    }
+
+    private void restoreLoadedYearSelection() {
+        settingYears = true;
+        try {
+            yearFilter.setValue(loadedYear == null ? ALL_YEARS : String.valueOf(loadedYear));
+        } finally {
+            settingYears = false;
+        }
+        if (selectedReport != null) {
+            updateDetailContent(selectedReport);
+        }
     }
 
     private void setLoading(boolean loading) {
