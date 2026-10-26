@@ -55,15 +55,15 @@
 - `DashboardReportContent.from(DashboardReport report, DashboardData data, Integer selectedYear)` returns immutable `title`, `context`, `period`, `headers`, `rows`, and `qrText` values.
 - `DashboardQrService.encode(String text, int size)` returns a ZXing `BitMatrix`; `savePng(BitMatrix matrix, Path destination)` writes a PNG.
 
-- [ ] **Step 1: Add failing report-content tests** for all six mappings, selected/all-year labels, report rows, empty datasets, and a QR summary containing only the selected report.
-- [ ] **Step 2: Run the focused content test** with Maven; confirm it fails because the report definitions and content builder are missing.
-- [ ] **Step 3: Implement the report enum and immutable content builder** with deterministic row order and a short human-readable context for each existing chart.
-- [ ] **Step 4: Run the focused content test** and confirm all six cases pass, including empty lists and selected-year data.
-- [ ] **Step 5: Add ZXing Core 3.5.4** and add its Apache 2.0 notice to `THIRD-PARTY-NOTICES.md`.
-- [ ] **Step 6: Add QR round-trip tests** that encode each report summary—including empty report data—save/read a PNG, decode it with ZXing, and assert the original text is recovered.
-- [ ] **Step 7: Implement `DashboardQrService`** using the dependency-free `core` artifact, rejecting blank text and invalid image sizes with clear exceptions.
-- [ ] **Step 8: Run the focused QR tests** and confirm the QR is readable for all six reports and long labels.
-- [ ] **Step 9: Commit** as `feat: build report summaries and QR export`.
+- [x] **Step 1: Add failing report-content tests** for all six mappings, selected/all-year labels, report rows, empty datasets, and a QR summary containing only the selected report.
+- [x] **Step 2: Run the focused content test** with Maven; confirm it fails because the report definitions and content builder are missing.
+- [x] **Step 3: Implement the report enum and immutable content builder** with deterministic row order and a short human-readable context for each existing chart.
+- [x] **Step 4: Run the focused content test** and confirm all six cases pass, including empty lists and selected-year data.
+- [x] **Step 5: Add ZXing Core 3.5.4** and add its Apache 2.0 notice to `THIRD-PARTY-NOTICES.md`.
+- [x] **Step 6: Add QR round-trip tests** that encode each report summary—including empty report data—save/read a PNG, decode it with ZXing, and assert the original text is recovered.
+- [x] **Step 7: Implement `DashboardQrService`** using the dependency-free `core` artifact, rejecting blank text and invalid image sizes with clear exceptions.
+- [x] **Step 8: Run the focused QR tests** and confirm the QR is readable for all six reports and long labels.
+- [x] **Step 9: Commit** as `feat: build report summaries and QR export`.
 
 ### Task 2: Export the selected chart as a PDF
 

@@ -7,6 +7,7 @@ La licencia MIT de [`LICENSE`](LICENSE) aplica al código y los documentos propi
 | OpenJFX 21.0.10 | Ventana y gráficos | GPL v2 con excepción Classpath | [OpenJFX](https://github.com/openjdk/jfx) |
 | PostgreSQL JDBC 42.7.14 | Conexión con PostgreSQL | PostgreSQL License | [pgjdbc](https://github.com/pgjdbc/pgjdbc) |
 | Apache PDFBox 3.0.8 | Informes PDF | Apache License 2.0 | [Apache PDFBox](https://github.com/apache/pdfbox) |
+| ZXing Core 3.5.4 | Generación y lectura local de códigos QR | Apache License 2.0 | [ZXing](https://github.com/zxing/zxing) |
 | JUnit Jupiter 5.10.2 | Pruebas, solo desarrollo | EPL 2.0 | [JUnit](https://github.com/junit-team/junit-framework) |
 | Datos de ejemplo Northwind | Contenido del almacén | No se vuelve a licenciar aquí | Ver el origen y los términos del conjunto de datos que uses |
 

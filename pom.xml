@@ -23,6 +23,7 @@
         <javafx.version>21.0.10</javafx.version>
         <postgresql.version>42.7.14</postgresql.version>
         <pdfbox.version>3.0.8</pdfbox.version>
+        <zxing.version>3.5.4</zxing.version>
         <junit.version>5.10.2</junit.version>
     </properties>
 
@@ -46,6 +47,11 @@
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
             <version>${pdfbox.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>${zxing.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
