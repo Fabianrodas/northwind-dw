@@ -47,15 +47,17 @@
 - Modify: `src/main/java/com/northwinddw/data/ConnectionFactory.java`
 - Modify: `src/test/java/com/northwinddw/data/AnalyticsRepositoryIntegrationTest.java`
 
-- [ ] Add failing tests that reject missing and blank passwords, accept an explicit password, and confirm password redaction.
-- [ ] Run `mvn -Dtest=DatabaseConfigTest test`; confirm the new missing-password assertion fails because empty credentials are currently accepted.
-- [ ] Make `DatabaseConfig.from()` require a non-empty password, default the username to `northwind_dw_app`, and keep password redaction.
-- [ ] Change `.env.example` to `NORTHWIND_DB_USER=northwind_dw_app` and an empty password field.
-- [ ] Add a one-time SQL script that creates the `northwind_dw_app` login and grants CONNECT, schema USAGE, and SELECT only on current/future public tables.
-- [ ] Make `ConnectionFactory.from(DatabaseConfig)` mark every opened JDBC connection read-only before returning it.
-- [ ] Extend the database integration test to confirm the app can query dashboard data and cannot perform a write.
-- [ ] Run `mvn -Dtest=DatabaseConfigTest test` and the database integration test against the local read-only role; confirm all assertions pass.
-- [ ] Commit as `security: require explicit read-only database access`.
+- [x] Add failing tests that reject missing and blank passwords, accept an explicit password, and confirm password redaction.
+- [x] Run `mvn -Dtest=DatabaseConfigTest test`; confirm the new missing-password assertion fails because empty credentials are currently accepted.
+- [x] Make `DatabaseConfig.from()` require a non-empty password, default the username to `northwind_dw_app`, and keep password redaction.
+- [x] Change `.env.example` to `NORTHWIND_DB_USER=northwind_dw_app` and an empty password field.
+- [x] Add a one-time SQL script that creates the `northwind_dw_app` login and grants CONNECT, schema USAGE, and SELECT only on current/future public tables.
+- [x] Make `ConnectionFactory.from(DatabaseConfig)` mark every opened JDBC connection read-only before returning it.
+- [x] Extend the database integration test to confirm the app can query dashboard data and cannot perform a write.
+- [x] Configure pgJDBC with `readOnly=true` and `readOnlyMode=always` so autocommit sessions are enforced read-only as well.
+- [x] Run the focused config/connection tests and the database integration test against the local read-only role; confirm queries succeed and writes fail.
+- [x] Commit as `security: require explicit read-only database access`.
+- [x] Commit the session-level read-only regression fix after the full database-backed verification.
 
 ### Task 2: Replace the incompatible PDF dependency
 
@@ -64,11 +66,11 @@
 - Modify: `src/main/java/com/northwinddw/service/DashboardExporter.java`
 - Modify: `pom.xml`
 
-- [ ] Update the PDF test to load the exported file with PDFBox and assert its extracted report text includes `$123.45`, `1996`, and section headings.
-- [ ] Run `mvn -Dtest=DashboardExporterTest test`; confirm the test cannot compile because the PDFBox dependency/API has not been added.
-- [ ] Replace `com.itextpdf:layout` with `org.apache.pdfbox:pdfbox:3.0.8` and render a paginated PDF using embedded standard fonts, with title, summary, table headings, and report rows.
-- [ ] Run `mvn -Dtest=DashboardExporterTest test`; confirm text, SQL-copy, and unwritable-path tests pass.
-- [ ] Commit as `refactor: use Apache PDFBox for report exports`.
+- [x] Update the PDF test to load the exported file with PDFBox and assert its extracted report text includes `$123.45`, `1996`, and section headings.
+- [x] Run `mvn -Dtest=DashboardExporterTest test`; confirm the test cannot compile because the PDFBox dependency/API has not been added.
+- [x] Replace `com.itextpdf:layout` with `org.apache.pdfbox:pdfbox:3.0.8` and render a paginated PDF using embedded standard fonts, with title, summary, table headings, and report rows.
+- [x] Run `mvn -Dtest=DashboardExporterTest test`; confirm text, SQL-copy, and unwritable-path tests pass.
+- [x] Commit as `refactor: use Apache PDFBox for report exports`.
 
 ### Task 3: Add license, dependency metadata, and security guidance
 
@@ -81,13 +83,13 @@
 - Modify: `README.md`
 - Modify: `scripts/verify.ps1`
 
-- [ ] Add the standard MIT license text for Northwind DW's own source.
-- [ ] List direct third-party libraries with their separate licenses and link to license texts; clarify that the MIT license does not replace those terms.
-- [ ] Document the project's academic/local scope, no supported release or response guarantee, and avoiding confidential real data.
-- [ ] Update README setup to create the database, provision the read-only role, place only app credentials in ignored `.env`, and run the existing dashboard. Preserve the screenshots and theme/responsive notes.
-- [ ] Add static verification that `.env` is ignored and not tracked, and that the sample has no usable password.
-- [ ] Run `.scriptserify.ps1`; confirm all existing and new checks pass.
-- [ ] Commit as `docs: add MIT license and security guidance`.
+- [x] Add the standard MIT license text for Northwind DW's own source.
+- [x] List direct third-party libraries with their separate licenses and link to license texts; clarify that the MIT license does not replace those terms.
+- [x] Document the project's academic/local scope, no supported release or response guarantee, and avoiding confidential real data.
+- [x] Update README setup to create the database, provision the read-only role, place only app credentials in ignored `.env`, and run the existing dashboard. Preserve the screenshots and theme/responsive notes.
+- [x] Add static verification that `.env` is ignored and not tracked, and that the sample has no usable password.
+- [x] Run `.\scripts\verify.ps1`; confirm all existing and new checks pass.
+- [x] Commit as `docs: add MIT license and security guidance`.
 
 ### Task 4: Provision the local database and verify the full app
 
@@ -95,12 +97,12 @@
 - Local only: `.env` (never stage or commit)
 - Existing: `src/main/resources/db/northwind_dw.sql`
 
-- [ ] Verify the configured PostgreSQL admin credential without printing it; inspect the target database before creating anything.
-- [ ] Create and load `northwind_pentaho` only if it does not already contain the project schema; preserve any existing database data.
-- [ ] Create or provision `northwind_dw_app` with read-only privileges, set its password locally, and replace admin credentials in `.env` with the app login.
-- [ ] Run unit and DB integration tests, build the package, and launch `mvn javafx:run` to verify the dashboard connects and renders real data.
-- [ ] Confirm the app role cannot change database data and `git status` shows no tracked credentials.
-- [ ] Commit any remaining project changes only after verification; leave `.env` and the local database intact.
+- [x] Verify the configured PostgreSQL admin credential without printing it; inspect the target database before creating anything.
+- [x] Preserve the existing `northwind_pentaho` database after confirming its six project tables and row data were already loaded.
+- [x] Provision `northwind_dw_app` with read-only privileges, set a random password locally, and replace admin credentials in `.env` with the app login.
+- [x] Run unit and DB integration tests and build the package; launch `mvn javafx:run` to verify the dashboard connects and renders real data.
+- [x] Confirm the app role cannot change database data and `git status` shows no tracked credentials.
+- [x] Commit any remaining project changes only after verification; leave `.env` and the local database intact.
 
 ## Self-review
 

@@ -54,6 +54,8 @@ public record DatabaseConfig(String host, int port, String database, String user
         properties.setProperty("password", password);
         properties.setProperty("ApplicationName", "Northwind DW");
         properties.setProperty("connectTimeout", "5");
+        properties.setProperty("readOnly", "true");
+        properties.setProperty("readOnlyMode", "always");
         return properties;
     }
 

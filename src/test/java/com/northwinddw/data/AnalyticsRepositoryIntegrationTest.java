@@ -9,11 +9,13 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -61,15 +63,27 @@ class AnalyticsRepositoryIntegrationTest {
         assertEquals(2, openedConnections.get());
 
         try (Connection connection = delegate.open()) {
+            assertTrue(connection.getAutoCommit());
             assertTrue(connection.isReadOnly());
-            connection.setAutoCommit(false);
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "SELECT current_setting('transaction_read_only'), "
+                            + "has_table_privilege(current_user, 'public.employees', 'UPDATE')");
+                 ResultSet rows = statement.executeQuery()) {
+                assertTrue(rows.next());
+                assertEquals("on", rows.getString(1));
+                assertFalse(rows.getBoolean(2));
+            }
             assertThrows(SQLException.class, () -> {
                 try (PreparedStatement statement = connection.prepareStatement(
                         "UPDATE public.employees SET firstname = firstname WHERE employeeid = 1")) {
-                    statement.executeUpdate();
+                    try {
+                        statement.executeUpdate();
+                    } catch (SQLException exception) {
+                        assertEquals("25006", exception.getSQLState());
+                        throw exception;
+                    }
                 }
             });
-            connection.rollback();
         }
     }
 }

@@ -11,6 +11,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DatabaseConfigTest {
     @TempDir
@@ -65,8 +66,19 @@ class DatabaseConfigTest {
 
     @Test
     void rejectsInvalidPortValues() {
-        assertThrows(IllegalArgumentException.class, () -> DatabaseConfig.from(
-                Map.of("NORTHWIND_DB_PORT", "70000"), temporaryDirectory.resolve("missing.env")));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> DatabaseConfig.from(
+                Map.of("NORTHWIND_DB_PORT", "70000", "NORTHWIND_DB_PASSWORD", "sample-only-value"),
+                temporaryDirectory.resolve("missing.env")));
+        assertTrue(exception.getMessage().contains("NORTHWIND_DB_PORT"));
+    }
+
+    @Test
+    void configuresThePostgresSessionAsReadOnly() {
+        DatabaseConfig config = DatabaseConfig.from(Map.of(
+                "NORTHWIND_DB_PASSWORD", "sample-only-value"), temporaryDirectory.resolve("missing.env"));
+
+        assertEquals("true", config.connectionProperties().getProperty("readOnly"));
+        assertEquals("always", config.connectionProperties().getProperty("readOnlyMode"));
     }
 
     @Test
