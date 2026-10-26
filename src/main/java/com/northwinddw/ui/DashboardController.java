@@ -20,6 +20,7 @@ import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.AccessibleRole;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.chart.BarChart;
@@ -50,8 +51,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 import javax.imageio.ImageIO;
 
 import java.awt.image.BufferedImage;
@@ -62,6 +66,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
@@ -166,6 +171,7 @@ public final class DashboardController {
         exportSqlButton.setTooltip(new Tooltip("Guarda el script para preparar una base vacía."));
         detailPdfButton.setTooltip(new Tooltip("Guarda este gráfico con su explicación y los datos del periodo elegido."));
         detailQrButton.setTooltip(new Tooltip("Crea un QR para descargar este gráfico en otro dispositivo de la misma red local."));
+        configureChartAxes();
         applyTheme();
         configureReportCard(quarterlyCard, DashboardReport.QUARTERLY_SALES);
         configureReportCard(categoryCard, DashboardReport.CATEGORY_REVENUE);
@@ -607,7 +613,17 @@ public final class DashboardController {
 
     private void renderQuarterlySales(List<QuarterlySales> rows) {
         Map<Integer, XYChart.Series<String, Number>> byYear = new TreeMap<>();
-        for (QuarterlySales row : rows) {
+        List<QuarterlySales> orderedRows = rows.stream()
+                .sorted(Comparator.comparingInt(QuarterlySales::year)
+                        .thenComparingInt(row -> quarterOrder(row.quarter())))
+                .toList();
+        Map<Integer, Integer> yearSeriesIndexes = new TreeMap<>();
+        Map<Integer, BigDecimal> largestQuarterByYear = new TreeMap<>();
+        for (QuarterlySales row : orderedRows) {
+            yearSeriesIndexes.computeIfAbsent(row.year(), ignored -> yearSeriesIndexes.size());
+            largestQuarterByYear.merge(row.year(), row.revenue(), BigDecimal::max);
+        }
+        for (QuarterlySales row : orderedRows) {
             XYChart.Series<String, Number> series = byYear.computeIfAbsent(row.year(), year -> {
                 XYChart.Series<String, Number> created = new XYChart.Series<>();
                 created.setName(String.valueOf(year));
@@ -615,7 +631,11 @@ public final class DashboardController {
             });
             String quarter = DashboardFormat.quarterLabel(row.quarter());
             XYChart.Data<String, Number> point = new XYChart.Data<>(quarter, row.revenue());
-            installTooltip(point, quarter + " " + row.year() + " · " + DashboardFormat.usd(row.revenue()));
+            String description = quarter + " " + row.year() + " · " + DashboardFormat.usd(row.revenue());
+            installLineLabel(point, DashboardFormat.chartUsd(row.revenue()), description,
+                    yearSeriesIndexes.get(row.year()), series.getData().size(), false,
+                    row.revenue().compareTo(largestQuarterByYear.get(row.year())) >= 0);
+            installTooltip(point, description);
             series.getData().add(point);
         }
         quarterlyChart.getData().setAll(byYear.values());
@@ -629,8 +649,11 @@ public final class DashboardController {
         series.setName("Ventas por categoría");
         for (CategoryRevenue row : rows) {
             XYChart.Data<Number, String> point = new XYChart.Data<>(row.revenue(), row.category());
-            installTooltip(point, row.category() + " · " + DashboardFormat.percentage(row.percentage())
-                    + " · " + DashboardFormat.usd(row.revenue()));
+            String description = row.category() + " · " + DashboardFormat.percentage(row.percentage())
+                    + " · " + DashboardFormat.usd(row.revenue());
+            installBarLabel(point, compactName(row.category(), 16) + " · " + DashboardFormat.chartUsd(row.revenue()) + " · "
+                    + DashboardFormat.percentage(row.percentage()), description, series.getData().size());
+            installTooltip(point, description);
             series.getData().add(point);
         }
         categoryChart.getData().setAll(series);
@@ -643,7 +666,10 @@ public final class DashboardController {
         series.setName("Ventas");
         for (CountryRevenue row : rows) {
             XYChart.Data<Number, String> point = new XYChart.Data<>(row.revenue(), row.country());
-            installTooltip(point, row.country() + " · " + DashboardFormat.usd(row.revenue()));
+            String description = row.country() + " · " + DashboardFormat.usd(row.revenue());
+            installBarLabel(point, compactName(row.country(), 15) + " · " + DashboardFormat.chartUsd(row.revenue()),
+                    description, series.getData().size());
+            installTooltip(point, description);
             series.getData().add(point);
         }
         countryChart.getData().setAll(series);
@@ -656,7 +682,10 @@ public final class DashboardController {
         series.setName("Ventas");
         for (CustomerRevenue row : rows) {
             XYChart.Data<Number, String> point = new XYChart.Data<>(row.revenue(), row.customer());
-            installTooltip(point, row.customer() + " · " + DashboardFormat.usd(row.revenue()));
+            String description = row.customer() + " · " + DashboardFormat.usd(row.revenue());
+            installBarLabel(point, compactName(row.customer(), 18) + " · " + DashboardFormat.chartUsd(row.revenue()),
+                    description, series.getData().size());
+            installTooltip(point, description);
             series.getData().add(point);
         }
         customerChart.getData().setAll(series);
@@ -669,6 +698,9 @@ public final class DashboardController {
         List<EmployeeRevenue> orderedRows = rows.stream()
                 .sorted(Comparator.comparingInt(EmployeeRevenue::year).thenComparing(EmployeeRevenue::employee))
                 .toList();
+        Map<String, Integer> employeeSeriesIndexes = new TreeMap<>();
+        rows.stream().map(EmployeeRevenue::employee).distinct().sorted()
+                .forEach(employee -> employeeSeriesIndexes.put(employee, employeeSeriesIndexes.size()));
         for (EmployeeRevenue row : orderedRows) {
             XYChart.Series<String, Number> series = byEmployee.computeIfAbsent(row.employee(), employee -> {
                 XYChart.Series<String, Number> created = new XYChart.Series<>();
@@ -676,7 +708,10 @@ public final class DashboardController {
                 return created;
             });
             XYChart.Data<String, Number> point = new XYChart.Data<>(String.valueOf(row.year()), row.revenue());
-            installTooltip(point, row.employee() + " · " + row.year() + " · " + DashboardFormat.usd(row.revenue()));
+            String description = row.employee() + " · " + row.year() + " · " + DashboardFormat.usd(row.revenue());
+            installLineLabel(point, DashboardFormat.chartUsd(row.revenue()), description,
+                    employeeSeriesIndexes.get(row.employee()), series.getData().size(), true, false);
+            installTooltip(point, description);
             series.getData().add(point);
         }
         employeeTrendChart.getData().setAll(byEmployee.values());
@@ -689,8 +724,11 @@ public final class DashboardController {
                         .thenComparing(EmployeeRevenue::employee))
                 .forEach(row -> {
                     XYChart.Data<Number, String> point = new XYChart.Data<>(row.revenue(), row.employee());
-                    installTooltip(point, row.employee() + " · " + row.year() + " · "
-                            + DashboardFormat.usd(row.revenue()));
+                    String description = row.employee() + " · " + row.year() + " · "
+                            + DashboardFormat.usd(row.revenue());
+                    installBarLabel(point, compactName(row.employee(), 14) + " · " + DashboardFormat.chartUsd(row.revenue()), description,
+                            comparison.getData().size());
+                    installTooltip(point, description);
                     comparison.getData().add(point);
                 });
         employeeYearChart.getData().setAll(comparison);
@@ -712,7 +750,10 @@ public final class DashboardController {
         series.setName("Proveedores");
         for (SuppliersByCountry row : rows) {
             XYChart.Data<Number, String> point = new XYChart.Data<>(row.supplierCount(), row.country());
-            installTooltip(point, row.country() + " · " + row.supplierCount() + " proveedores");
+            String description = row.country() + " · " + row.supplierCount() + " proveedores";
+            installBarLabel(point, compactName(row.country(), 15) + " · " + row.supplierCount(),
+                    description, series.getData().size());
+            installTooltip(point, description);
             series.getData().add(point);
         }
         supplierChart.getData().setAll(series);
@@ -834,12 +875,133 @@ public final class DashboardController {
     }
 
     private static void setCategories(Chart chart, List<String> categories) {
-        ((CategoryAxis) ((javafx.scene.chart.XYChart<?, ?>) chart).getYAxis())
-                .setCategories(FXCollections.observableArrayList(categories));
+        List<String> displayOrder = new ArrayList<>(categories);
+        Collections.reverse(displayOrder);
+        CategoryAxis axis = (CategoryAxis) ((javafx.scene.chart.XYChart<?, ?>) chart).getYAxis();
+        axis.setAutoRanging(false);
+        axis.setCategories(FXCollections.observableArrayList(displayOrder));
     }
 
     private static void clearCategories(Chart chart) {
         ((CategoryAxis) ((javafx.scene.chart.XYChart<?, ?>) chart).getYAxis()).getCategories().clear();
+    }
+
+    private void configureChartAxes() {
+        configureUsdAxis((NumberAxis) quarterlyChart.getYAxis());
+        configureUsdAxis((NumberAxis) categoryChart.getXAxis());
+        configureUsdAxis((NumberAxis) countryChart.getXAxis());
+        configureUsdAxis((NumberAxis) customerChart.getXAxis());
+        configureUsdAxis((NumberAxis) employeeTrendChart.getYAxis());
+        configureUsdAxis((NumberAxis) employeeYearChart.getXAxis());
+        configureCategoryAxis((CategoryAxis) categoryChart.getYAxis(), 100);
+        configureCategoryAxis((CategoryAxis) countryChart.getYAxis(), 104);
+        configureCategoryAxis((CategoryAxis) customerChart.getYAxis(), 138);
+        configureCategoryAxis((CategoryAxis) employeeYearChart.getYAxis(), 128);
+        configureCategoryAxis((CategoryAxis) supplierChart.getYAxis(), 108);
+        NumberAxis supplierAxis = (NumberAxis) supplierChart.getXAxis();
+        supplierAxis.setTickLabelFormatter(new StringConverter<>() {
+            @Override
+            public String toString(Number value) {
+                return Long.toString(Math.round(value.doubleValue()));
+            }
+
+            @Override
+            public Number fromString(String value) {
+                return Long.parseLong(value);
+            }
+        });
+    }
+
+    private static void configureUsdAxis(NumberAxis axis) {
+        axis.setTickLabelFormatter(new StringConverter<>() {
+            @Override
+            public String toString(Number value) {
+                return DashboardFormat.chartUsd(BigDecimal.valueOf(value.doubleValue()));
+            }
+
+            @Override
+            public Number fromString(String value) {
+                throw new UnsupportedOperationException("Revenue axes are output only.");
+            }
+        });
+    }
+
+    private static void configureCategoryAxis(CategoryAxis axis, double minimumWidth) {
+        axis.setTickLabelsVisible(true);
+        axis.setMinWidth(minimumWidth);
+    }
+
+    private static int quarterOrder(String quarter) {
+        return switch (DashboardFormat.quarterLabel(quarter)) {
+            case "T1" -> 1;
+            case "T2" -> 2;
+            case "T3" -> 3;
+            case "T4" -> 4;
+            default -> 5;
+        };
+    }
+
+    private static String compactName(String name, int maxLength) {
+        if (name.length() <= maxLength) {
+            return name;
+        }
+        return name.substring(0, maxLength - 1).stripTrailing() + "…";
+    }
+
+    private static void installBarLabel(XYChart.Data<?, ?> point, String labelText,
+                                        String accessibleText, int dataIndex) {
+        Label label = new Label(labelText);
+        label.getStyleClass().add("chart-data-label");
+        label.setAccessibleText(accessibleText);
+        label.setMouseTransparent(true);
+        StackPane bar = new StackPane(label);
+        bar.getStyleClass().setAll("chart-bar", "default-color0", "series0", "data" + dataIndex);
+        StackPane.setAlignment(label, Pos.CENTER_LEFT);
+        label.setTranslateX(5);
+        bar.setAccessibleText(accessibleText);
+        point.setNode(bar);
+    }
+
+    private static void installLineLabel(XYChart.Data<?, ?> point, String labelText,
+                                         String accessibleText, int seriesIndex, int pointIndex,
+                                         boolean separateEmployeeSeries, boolean placeBelow) {
+        Label label = new Label(labelText);
+        label.getStyleClass().add("chart-data-label");
+        label.setAccessibleText(accessibleText);
+        label.setMouseTransparent(true);
+        label.setManaged(false);
+        label.setFont(Font.font("Segoe UI", FontWeight.BOLD, 9));
+        label.setPadding(new Insets(1, 3, 1, 3));
+        double labelWidth = Math.max(30, labelText.length() * 6.2 + 8);
+        label.setMinSize(labelWidth, 16);
+        label.setPrefSize(labelWidth, 16);
+        label.setMaxSize(labelWidth, 16);
+        label.resize(labelWidth, 16);
+        boolean placeRight = (seriesIndex + pointIndex) % 2 == 0;
+        StackPane symbol = new StackPane(label);
+        symbol.setMinSize(10, 10);
+        symbol.setPrefSize(10, 10);
+        symbol.setMaxSize(10, 10);
+        symbol.getStyleClass().setAll("chart-line-symbol", "default-color" + Math.floorMod(seriesIndex, 9),
+                "series" + seriesIndex, "data" + pointIndex);
+        double x;
+        double y;
+        if (separateEmployeeSeries) {
+            label.widthProperty().addListener((observable, oldWidth, width) -> label.relocate(
+                    placeRight ? 8 : -width.doubleValue() - 8, label.getLayoutY()));
+            x = placeRight ? 8 : -label.getWidth() - 8;
+            y = switch (Math.floorMod(seriesIndex + pointIndex, 3)) {
+                case 0 -> -label.getHeight() - 6;
+                case 1 -> -label.getHeight() / 2;
+                default -> 8;
+            };
+        } else {
+            x = 5 - label.getWidth() / 2;
+            y = placeBelow ? 9 : -label.getHeight() - 4;
+        }
+        label.relocate(x, y);
+        symbol.setAccessibleText(accessibleText);
+        point.setNode(symbol);
     }
 
     private static void installTooltip(XYChart.Data<?, ?> point, String text) {
@@ -848,6 +1010,9 @@ public final class DashboardController {
                 Tooltip.install(node, new Tooltip(text));
             }
         });
+        if (point.getNode() != null) {
+            Tooltip.install(point.getNode(), new Tooltip(text));
+        }
     }
 
     private Stage stage() {

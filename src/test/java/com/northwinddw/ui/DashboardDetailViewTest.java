@@ -16,6 +16,7 @@ import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.AccessibleRole;
+import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.Chart;
@@ -36,6 +37,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.junit.jupiter.api.Test;
@@ -91,6 +93,7 @@ class DashboardDetailViewTest {
                             stop();
                             try {
                                 assertChartMappings(loader);
+                                assertEveryPointHasVisibleLabel(loader);
                                 List<VBox> cards = List.of("quarterlyCard", "categoryCard", "countryCard",
                                                 "customerCard", "employeeCard", "supplierCard").stream()
                                         .map(id -> (VBox) loader.getNamespace().get(id))
@@ -135,14 +138,23 @@ class DashboardDetailViewTest {
         List<EmployeeRevenue> employeeRevenue = List.of(
                 new EmployeeRevenue(1996, "Nancy Davolio", new BigDecimal("110.00")),
                 new EmployeeRevenue(1997, "Nancy Davolio", new BigDecimal("255.00")),
-                new EmployeeRevenue(1998, "Nancy Davolio", new BigDecimal("180.00"))).stream()
+                new EmployeeRevenue(1998, "Nancy Davolio", new BigDecimal("180.00")),
+                new EmployeeRevenue(1996, "Janet Leverling", new BigDecimal("120.00")),
+                new EmployeeRevenue(1997, "Janet Leverling", new BigDecimal("220.00")),
+                new EmployeeRevenue(1998, "Janet Leverling", new BigDecimal("210.00")),
+                new EmployeeRevenue(1997, "Andrew Fuller", new BigDecimal("150.00")),
+                new EmployeeRevenue(1998, "Andrew Fuller", new BigDecimal("190.00"))).stream()
                 .filter(row -> selectedYear == null || row.year() == selectedYear)
                 .toList();
         return new DashboardData(
                 new RevenueSummary(selectedYear == null ? new BigDecimal("1265792.94") : new BigDecimal("260.00"), 89, 29),
                 quarterlySales,
-                List.of(new CategoryRevenue("Bebidas", new BigDecimal("320000"), new BigDecimal("25.3"))),
-                List.of(new CountryRevenue("Estados Unidos", new BigDecimal("245000"))),
+                List.of(new CategoryRevenue("Bebidas", new BigDecimal("320000"), new BigDecimal("25.3")),
+                        new CategoryRevenue("Lácteos", new BigDecimal("280000"), new BigDecimal("22.1")),
+                        new CategoryRevenue("Carnes", new BigDecimal("240000"), new BigDecimal("19.0"))),
+                List.of(new CountryRevenue("Estados Unidos", new BigDecimal("245000")),
+                        new CountryRevenue("Alemania", new BigDecimal("185000")),
+                        new CountryRevenue("Austria", new BigDecimal("136000"))),
                 List.of(new CustomerRevenue("Alfreds Futterkiste", new BigDecimal("68000"))),
                 employeeRevenue,
                 List.of(new SuppliersByCountry("Estados Unidos", 4)),
@@ -191,6 +203,8 @@ class DashboardDetailViewTest {
                             "Opening a report should move keyboard focus to the Back button.");
                     themeButton.fire();
                     assertTrue(root.getStyleClass().contains(DashboardTheme.DARK.styleClass()));
+                    root.applyCss();
+                    assertLabelContrast(loader, "categoryChart");
                     assertTrue(themeButton.isVisible());
                     assertTrue(yearFilter.isVisible());
                     yearFilter.setValue("1997");
@@ -231,11 +245,12 @@ class DashboardDetailViewTest {
                         assertEquals(2, chart.getData().getFirst().getData().size());
                         assertEquals(List.of("T1", "T2"), chart.getData().getFirst().getData().stream()
                                 .map(XYChart.Data::getXValue).toList());
-                        assertEquals(1, ((LineChart<?, ?>) loader.getNamespace().get("employeeTrendChart"))
+                        assertEquals(3, ((LineChart<?, ?>) loader.getNamespace().get("employeeTrendChart"))
                                 .getData().size());
                         assertFalse(((LineChart<?, ?>) loader.getNamespace().get("employeeTrendChart")).isVisible());
                         assertTrue(((BarChart<?, ?>) loader.getNamespace().get("employeeYearChart")).isVisible(),
                                 "A selected year should show employee rankings as bars.");
+                        assertEveryPointHasVisibleLabel(loader, "employeeYearChart");
                         ComboBox<String> yearFilter = (ComboBox<String>) loader.getNamespace().get("yearFilter");
                         yearFilter.setValue("1998");
                         awaitFailedYearRefresh(loader, root, stage, cards, controller, preferences,
@@ -430,6 +445,9 @@ class DashboardDetailViewTest {
     }
 
     private static void assertChartMappings(FXMLLoader loader) {
+        ((Parent) loader.getRoot()).applyCss();
+        ((Parent) loader.getRoot()).layout();
+        assertLabelContrast(loader, "categoryChart");
         assertTrue(loader.getNamespace().get("categoryChart") instanceof BarChart<?, ?>,
                 "Nominal product categories should use bars for precise comparisons.");
 
@@ -439,7 +457,8 @@ class DashboardDetailViewTest {
         assertEquals(List.of("1996", "1997", "1998"), quarters.getData().stream()
                 .map(XYChart.Series::getName).toList());
         assertEquals(1, quarters.getData().getFirst().getData().size(),
-                "Missing quarters must not be filled with zero values.");
+                "Missing quarters must remain gaps and must not be filled with zero values.");
+        assertEquals("T3", quarters.getData().getFirst().getData().getFirst().getXValue());
         assertEquals(List.of("T1", "T2"), quarters.getData().get(1).getData().stream()
                 .map(XYChart.Data::getXValue).toList());
 
@@ -450,6 +469,10 @@ class DashboardDetailViewTest {
                 "Comparative bar charts should include a meaningful zero baseline.");
         assertEquals("Categoría", ((CategoryAxis) ((BarChart<?, ?>) loader.getNamespace()
                 .get("categoryChart")).getYAxis()).getLabel());
+        assertEquals(List.of("Carnes", "Lácteos", "Bebidas"),
+                ((CategoryAxis) ((BarChart<?, ?>) loader.getNamespace().get("categoryChart"))
+                        .getYAxis()).getCategories(),
+                "Reverse axis categories so the largest value appears at the top of the ranking.");
         assertEquals("País", ((CategoryAxis) ((BarChart<?, ?>) loader.getNamespace()
                 .get("countryChart")).getYAxis()).getLabel());
         assertEquals("Cliente", ((CategoryAxis) ((BarChart<?, ?>) loader.getNamespace()
@@ -467,8 +490,62 @@ class DashboardDetailViewTest {
 
         LineChart<String, Number> employeeTrend =
                 (LineChart<String, Number>) loader.getNamespace().get("employeeTrendChart");
-        assertEquals(List.of("1996", "1997", "1998"), employeeTrend.getData().getFirst().getData().stream()
+        assertEquals(List.of("1996", "1997", "1998"), employeeTrend.getData().stream()
+                .filter(series -> series.getName().equals("Nancy Davolio")).findFirst().orElseThrow().getData().stream()
                 .map(XYChart.Data::getXValue).toList());
+        List<String> employeeColors = employeeTrend.getData().stream()
+                .map(series -> series.getData().getFirst().getNode().getStyleClass().stream()
+                        .filter(styleClass -> styleClass.matches("default-color\\d+"))
+                        .findFirst().orElseThrow())
+                .distinct().toList();
+        assertEquals(employeeTrend.getData().size(), employeeColors.size(),
+                "Each employee trend should keep a distinct series color.");
+        assertEquals("$1.2K", ((NumberAxis) ((BarChart<?, ?>) loader.getNamespace()
+                .get("categoryChart")).getXAxis()).getTickLabelFormatter().toString(1200),
+                "Revenue axes should use compact dollar labels.");
+        assertEquals("3", supplierAxis.getTickLabelFormatter().toString(3),
+                "Supplier counts should stay whole numbers on the axis.");
+    }
+
+    private static void assertEveryPointHasVisibleLabel(FXMLLoader loader, String... chartIds) {
+        if (chartIds.length == 0) {
+            chartIds = new String[]{"quarterlyChart", "categoryChart", "countryChart", "customerChart",
+                    "employeeTrendChart", "supplierChart"};
+        }
+        ((Parent) loader.getRoot()).applyCss();
+        ((Parent) loader.getRoot()).layout();
+        for (String chartId : chartIds) {
+            XYChart<?, ?> chart = (XYChart<?, ?>) loader.getNamespace().get(chartId);
+            for (XYChart.Series<?, ?> series : chart.getData()) {
+                for (XYChart.Data<?, ?> point : series.getData()) {
+                    if (point.getYValue() == null) {
+                        continue;
+                    }
+                    Node node = point.getNode();
+                    assertNotNull(node, chartId + " should create a visible node for each observation.");
+                    Label label = (Label) node.lookup(".chart-data-label");
+                    assertNotNull(label, chartId + " should show a value beside every plotted observation.");
+                    assertFalse(label.getText().isBlank());
+                    assertTrue(label.getWidth() > 0 && label.getHeight() > 0,
+                            chartId + " data labels should occupy visible space.");
+                    assertFalse(node.getAccessibleText() == null || node.getAccessibleText().isBlank(),
+                            "Data points should expose their exact context to assistive technology.");
+                    if (chartId.equals("categoryChart")) {
+                        assertTrue(label.getText().contains(point.getYValue().toString()),
+                                "Category bars should name the compared category alongside its measure.");
+                    }
+                }
+            }
+        }
+    }
+
+    private static void assertLabelContrast(FXMLLoader loader, String chartId) {
+        XYChart<?, ?> chart = (XYChart<?, ?>) loader.getNamespace().get(chartId);
+        Label label = (Label) chart.getData().getFirst().getData().getFirst().getNode()
+                .lookup(".chart-data-label");
+        Color background = (Color) label.getBackground().getFills().getFirst().getFill();
+        assertTrue(Math.abs(background.getBrightness() - ((Color) label.getTextFill()).getBrightness()) > 0.65,
+                "Data labels should retain readable contrast in each theme.");
     }
 
     private static VBox cardFor(int index, List<VBox> cards) {

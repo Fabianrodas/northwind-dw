@@ -58,12 +58,12 @@
 - `employeeTrendChart` is a `LineChart<String, Number>` for all-year data; `employeeYearChart` is a `BarChart<Number, String>` for a selected year. Both remain in one responsive chart host so detail navigation and exports use the currently active child.
 - `DashboardController.renderEmployees(List<EmployeeRevenue> rows, Integer selectedYear)` renders only the matching trend or single-year comparison.
 
-- [ ] **Step 1: Add failing JavaFX assertions** that category revenue is a bar chart; each axis has its intended dimension/unit; line series are ordered by year/quarter; employee view is a trend for all years and a ranked bar for one year; absent quarters stay absent.
-- [ ] **Step 2: Run** `mvn -q -Dtest=DashboardDetailViewTest test`; confirm the pie chart and single employee chart violate the assertions.
-- [ ] **Step 3: Update FXML** for labeled axes, replace category pie with horizontal bars, and add both employee chart choices inside a responsive host.
-- [ ] **Step 4: Update controller rendering** to normalize/chronologically order quarter labels, preserve missing values, switch employee charts by selected period, and restore the active node on return from detail.
-- [ ] **Step 5: Run** `mvn -q -Dtest=DashboardDetailViewTest test`; verify all report cards, year changes, detail return, and chart selection.
-- [ ] **Step 6: Commit** as `feat: use data-appropriate charts and axes`.
+- [x] **Step 1: Add failing JavaFX assertions** that category revenue is a bar chart; each axis has its intended dimension/unit; line series are ordered by year/quarter; employee view is a trend for all years and a ranked bar for one year; absent quarters stay absent.
+- [x] **Step 2: Run** `mvn -q -Dtest=DashboardDetailViewTest test`; confirm the pie chart and single employee chart violate the assertions.
+- [x] **Step 3: Update FXML** for labeled axes, replace category pie with horizontal bars, and add both employee chart choices inside a responsive host.
+- [x] **Step 4: Update controller rendering** to normalize/chronologically order quarter labels, preserve missing values, switch employee charts by selected period, and restore the active node on return from detail.
+- [x] **Step 5: Run** `mvn -q -Dtest=DashboardDetailViewTest test`; verify all report cards, year changes, detail return, and chart selection.
+- [x] **Step 6: Commit** as `feat: use data-appropriate charts and axes`.
 
 ### Task 3: Add visible values, meaningful colors, and responsive labels
 
@@ -77,12 +77,12 @@
 - Every revenue/count bar and observed line point has a visible compact value label and an exact tooltip/accessibility description.
 - A single ranked measure uses one semantic series color; years and employees use distinct legend colors. Labels remain readable in both themes.
 
-- [ ] **Step 1: Add failing view tests** for visible labels on every plotted datum, exact-value tooltips, zero-based bar axes, legends for multi-series trends, accessible summaries, and stable series colors in both themes.
-- [ ] **Step 2: Run** `mvn -q -Dtest=DashboardDetailViewTest test`; confirm current charts have no visible data labels and some summaries omit measure/context.
-- [ ] **Step 3: Add chart data labels** to bar marks and line symbols while retaining tooltips with full values and category/year names; include category share in category detail labels.
-- [ ] **Step 4: Define theme-aware chart palette and label styles** for line/bar colors, axes, gridlines, legends, data labels, and selected/hover states; keep text contrast and color-independent series names.
-- [ ] **Step 5: Run the focused view test** and the screenshot test with deterministic fixture data; inspect light/dark captures at overview/detail sizes.
-- [ ] **Step 6: Commit** as `feat: label and style analytics charts`.
+- [x] **Step 1: Add failing view tests** for visible labels on every plotted datum, exact-value tooltips, zero-based bar axes, legends for multi-series trends, accessible summaries, and stable series colors in both themes.
+- [x] **Step 2: Run** `mvn -q -Dtest=DashboardDetailViewTest test`; confirm current charts have no visible data labels and some summaries omit measure/context.
+- [x] **Step 3: Add chart data labels** to bar marks and line symbols while retaining tooltips with full values and category/year names; include category share in category detail labels.
+- [x] **Step 4: Define theme-aware chart palette and label styles** for line/bar colors, axes, gridlines, legends, data labels, and selected/hover states; keep text contrast and color-independent series names.
+- [x] **Step 5: Run the focused view test** and the screenshot test with deterministic fixture data; inspect light/dark captures at overview/detail sizes.
+- [x] **Step 6: Commit** as `feat: label and style analytics charts`.
 
 ### Task 4: Capture the real database, update project documentation, and set version
 
